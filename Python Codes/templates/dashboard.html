@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+{% set run = dashboard.run %}
+{% set runs = dashboard.runs %}
+{% set cards = dashboard.cards %}
+{% set table = dashboard.po_table %}
+{% set filters = dashboard.filters %}
+{% set active = dashboard.active_filters %}
+{% set threshold = dashboard.threshold %}
+{% set completed = dashboard.completed %}
+
+<!-- ===== Run Context Bar ===== -->
+<div class="run-context-bar mb-3">
+    <div class="row align-items-center g-2">
+        <div class="col-lg-3 col-md-4">
+            <div class="d-flex align-items-center gap-2">
+                <span class="run-label">Run</span>
+                <select class="form-select form-select-sm" style="width:auto;min-width:200px;"
+                        onchange="if(this.value) window.location.href='?run_id='+this.value">
+                    {% for r in runs %}
+                    <option value="{{ r.run_id }}" {% if r.run_id == run.run_id %}selected{% endif %}
+                            {% if r.run_status == 'Failed' or r.run_status == 'Uploaded' %}disabled class="text-muted"{% endif %}>
+                        {{ r.run_id[:12] }}... — {{ r.run_status }}
+                        {% if r.run_id == dashboard.latest_run_id %} (Latest){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-5 col-md-4">
+            <span class="run-label">Processed</span>
+            <span class="run-value">{{ run.completed_at[:19] if run.completed_at else run.created_at[:19] }}</span>
+            {% set s = run.run_status %}
+            {% if s == 'Completed' %}
+            <span class="badge bg-success ms-2">{{ s }}</span>
+            {% elif s == 'Completed_With_Exceptions' %}
+            <span class="badge bg-warning text-dark ms-2">{{ s }}</span>
+            {% elif s == 'Completed_With_Archive_Warning' %}
+            <span class="badge bg-warning text-dark ms-2">{{ s }}</span>
+            {% elif s == 'Failed' %}
+            <span class="badge bg-danger ms-2">{{ s }}</span>
+            {% else %}
+            <span class="badge bg-secondary ms-2">{{ s }}</span>
+            {% endif %}
+            {% if run.run_id == dashboard.latest_run_id %}
+            <span class="badge bg-success ms-1" style="font-size:0.7rem;">Latest successful run</span>
+            {% endif %}
+            {% if threshold.is_test %}
+            <span class="badge-test-profile ms-1">TEST PROFILE - NOT BUSINESS-APPROVED</span>
+            {% endif %}
+        </div>
+        <div class="col-lg-4 col-md-4 text-md-end">
+            <span class="run-label">Threshold</span>
+            <span class="run-value">{{ threshold.profile_name or 'None' }} v{{ threshold.version or 'N/A' }}</span>
+            {% if threshold.active %}
+            <span class="badge bg-success ms-1">Active</span>
+            {% else %}
+            <span class="badge bg-secondary ms-1">Inactive</span>
+            {% endif %}
+            <span class="run-label ms-3">Completed POs</span>
+            <div class="form-check form-check-inline completed-toggle-wrapper d-inline-flex ms-1">
+                <input class="form-check-input" type="checkbox" id="completedToggle"
+                       {% if completed %}checked{% endif %}
+                       onchange="toggleCompleted(this.checked)">
+                <label class="form-check-label small" for="completedToggle">Include</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Warning Banner ===== -->
+{% if run.run_status == 'Completed_With_Exceptions' %}
+<div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+    <strong>Data quality exceptions</strong> — Some records in this run have data quality issues.
+    <a href="{{ url_for('run_detail', run_id=run.run_id) }}" class="btn btn-sm btn-outline-warning ms-auto">View Run Details</a>
+</div>
+{% elif run.run_status == 'Completed_With_Archive_Warning' %}
+<div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+    <strong>Archive warning</strong> — Source files for this run were not archived successfully.
+    <a href="{{ url_for('run_detail', run_id=run.run_id) }}" class="btn btn-sm btn-outline-danger ms-auto">View Run Details</a>
+</div>
+{% endif %}
+
+<!-- ===== Risk Rules Not Configured Notice ===== -->
+{% if not threshold.active %}
+<div class="risk-rules-notice d-flex align-items-start mb-3">
+    <div class="notice-icon">&#9888;</div>
+    <div>
+        <strong>Risk rules not configured.</strong> Operational risk categories (Emergency, Critical, Watchlist, Normal) are not available until thresholds are approved and activated. Summary and data-health cards remain available below.
+    </div>
+</div>
+{% endif %}
+
+<!-- ===== Dashboard Cards ===== -->
+<div class="dashboard-card-grid row g-3 mb-4">
+
+    <!-- === Summary === -->
+    <div class="col-12">
+        <div class="card-group-header">Summary</div>
+    </div>
+    <div class="col">
+        <div class="card dashboard-card card-summary" onclick="window.location.href='?{{ update_query(active, remove='risk', remove_dq='dq') }}'">
+            <div class="card-body">
+                <div class="card-count">{{ cards.total_open_pos.count }}</div>
+                <div class="card-label">Total Open POs</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === Operational Risk === -->
+    {% if threshold.active %}
+    <div class="col-12 mt-2">
+        <div class="card-group-header">Operational Risk</div>
+    </div>
+    {% for key, label, css_class in [
+        ('emergency', 'Emergency', 'card-emergency'),
+        ('critical', 'Critical', 'card-critical'),
+        ('watchlist', 'Watchlist', 'card-watchlist'),
+        ('normal', 'Normal / On Track', 'card-normal'),
+    ] %}
+    <div class="col">
+        <div class="card dashboard-card {{ css_class }}"
+             onclick="window.location.href='?{{ update_query(active, risk=key) }}'">
+            <div class="card-body">
+                <div class="card-count">{{ cards[key].count }}</div>
+                <div class="card-label">{{ label }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12 mt-2">
+        <div class="card-group-header">Operational Risk</div>
+    </div>
+    {% for key, label in [
+        ('emergency', 'Emergency'),
+        ('critical', 'Critical'),
+        ('watchlist', 'Watchlist'),
+        ('normal', 'Normal / On Track'),
+    ] %}
+    <div class="col">
+        <div class="card dashboard-card card-not-available">
+            <div class="card-body">
+                <div class="card-count">
+                    <span class="not-available-badge">Not available</span>
+                </div>
+                <div class="card-label">{{ label }}</div>
+                <div class="small text-muted">risk rules not configured</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- === Data Health === -->
+    <div class="col-12 mt-2">
+        <div class="card-group-header">Data Health</div>
+    </div>
+    {% for key, label, css_class, dq_filter in [
+        ('missing_data', 'Missing Data', 'card-missing-data', 'Missing_Data'),
+        ('ambiguous_matches', 'Ambiguous Matches', 'card-ambiguous', 'ambiguous'),
+        ('dq_exceptions', 'Data Quality Exceptions', 'card-dq-exception', 'dq_exception'),
+    ] %}
+    <div class="col">
+        <div class="card dashboard-card {{ css_class }}"
+             onclick="window.location.href='?{{ update_query(active, dq=dq_filter) }}'">
+            <div class="card-body">
+                <div class="card-count">{{ cards[key].count }}</div>
+                <div class="card-label">{{ label }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<!-- ===== PO Table ===== -->
+<div class="card">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span><strong>{{ table.total }}</strong> PO{% if table.total != 1 %}s{% endif %}</span>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <form method="GET" action="{{ url_for('dashboard') }}" class="d-flex gap-2 align-items-center">
+                {% if completed %}<input type="hidden" name="completed" value="1">{% endif %}
+                {% if active.run_id %}<input type="hidden" name="run_id" value="{{ active.run_id }}">{% endif %}
+                <input type="search" name="search" class="form-control form-control-sm" style="width:200px;"
+                       placeholder="Search PO, material, supplier..." value="{{ active.search or '' }}">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Search</button>
+                {% if active.search %}
+                <a href="?{{ update_query(active, remove='search') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter chips -->
+    {% set chip_count = 0 %}
+    {% for key, label in [
+        ('risk', 'Risk'), ('dq', 'Data Quality'), ('supplier', 'Supplier'),
+        ('country', 'Country'), ('bd_match', 'BD Match'), ('ee_match', 'EE Match'),
+    ] %}
+        {% if active[key] %}{% set chip_count = chip_count + 1 %}{% endif %}
+    {% endfor %}
+    {% if active.search or chip_count > 0 %}
+    <div class="card-body py-2 border-bottom">
+        <div class="d-flex flex-wrap align-items-center">
+            {% if active.search %}
+            <span class="filter-chip">Search: "{{ active.search }}"
+                <span class="chip-remove" onclick="window.location.href='?{{ update_query(active, remove='search') }}'">&times;</span>
+            </span>
+            {% endif %}
+            {% if active.risk %}
+            <span class="filter-chip">Risk: {{ active.risk }}
+                <span class="chip-remove" onclick="window.location.href='?{{ update_query(active, remove='risk') }}'">&times;</span>
+            </span>
+            {% endif %}
+            {% if active.dq %}
+            <span class="filter-chip">DQ: {{ active.dq }}
+                <span class="chip-remove" onclick="window.location.href='?{{ update_query(active, remove='dq') }}'">&times;</span>
+            </span>
+            {% endif %}
+            {% if active.supplier %}
+            <span class="filter-chip">Supplier: {{ active.supplier }}
+                <span class="chip-remove" onclick="window.location.href='?{{ update_query(active, remove='supplier') }}'">&times;</span>
+            </span>
+            {% endif %}
+            {% if active.country %}
+            <span class="filter-chip">Country: {{ active.country }}
+                <span class="chip-remove" onclick="window.location.href='?{{ update_query(active, remove='country') }}'">&times;</span>
+            </span>
+            {% endif %}
+            {% if active.bd_match %}
+            <span class="filter-chip">BD Match: {{ active.bd_match }}
+                <span class="chip-remove" onclick="window.location.href='?{{ update_query(active, remove='bd_match') }}'">&times;</span>
+            </span>
+            {% endif %}
+            {% if active.ee_match %}
+            <span class="filter-chip">EE Match: {{ active.ee_match }}
+                <span class="chip-remove" onclick="window.location.href='?{{ update_query(active, remove='ee_match') }}'">&times;</span>
+            </span>
+            {% endif %}
+            <a href="?{{ update_query(active, clear_all=True) }}" class="btn btn-sm btn-link text-decoration-none ms-2">Clear all filters</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card-body p-0">
+        {% if table.total == 0 %}
+        <div class="text-center py-5 text-muted">
+            {% if active.search or chip_count > 0 %}
+            <p>No POs match the selected filters.</p>
+            <a href="?{{ update_query(active, clear_all=True) }}" class="btn btn-outline-secondary btn-sm">Clear filters</a>
+            {% else %}
+            <p>No processing runs found. Upload and process the three source files to view the dashboard.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm">Upload Files</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="po-table-wrap">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width:110px;">PO Number</th>
+                        <th style="min-width:140px;">Supplier</th>
+                        <th>Material / AGI</th>
+                        <th style="min-width:90px;">Open Qty</th>
+                        <th>Risk</th>
+                        <th>DQ</th>
+                        <th>Next Milestone</th>
+                        <th style="min-width:90px;">RDD</th>
+                        <th>RDD Source</th>
+                        <th>BD ETA</th>
+                        <th>EE ETA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for po in table.data %}
+                    <tr onclick="window.location.href='{{ url_for('po_detail', po_number=po.Standardised_PO_Number, run_id=run.run_id, completed='1' if completed else '0') }}'" style="cursor:pointer;">
+                        <td><code>{{ po.Standardised_PO_Number }}</code></td>
+                        <td>{{ po.Supplier_Plant_Name or po.Supplier_Plant_ID or '—' }}</td>
+                        <td>{{ po.Standardised_Material_AGI or po.Material_Count or '—' }}</td>
+                        <td>{{ po.Open_PO_Quantity or po.Open_Quantity or '—' }}</td>
+                        <td>
+                            {% set rc = po.Overall_Risk_Category or '—' %}
+                            {% if rc == 'Emergency' %}
+                            <span class="badge badge-risk-emergency">Emergency</span>
+                            {% elif rc == 'Critical' %}
+                            <span class="badge badge-risk-critical">Critical</span>
+                            {% elif rc == 'Watchlist' %}
+                            <span class="badge badge-risk-watchlist">Watchlist</span>
+                            {% elif rc == 'Normal' or rc == 'On Track' %}
+                            <span class="badge badge-risk-normal">{{ rc }}</span>
+                            {% elif rc == 'Rules not configured' %}
+                            <span class="badge badge-neutral">Not configured</span>
+                            {% else %}
+                            <span class="badge badge-neutral">{{ rc }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set dq = po.Data_Quality_Severity or po.Highest_Data_Quality_Severity or 'OK' %}
+                            {% if dq == 'Missing_Data' %}
+                            <span class="badge badge-dq-missing" title="{{ po.Data_Quality_Reasons or '' }}">Missing</span>
+                            {% elif dq == 'OK' %}
+                            <span class="badge bg-light text-muted">OK</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ dq }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ po.Next_Required_Milestone or '—' }}</td>
+                        <td>{{ (po.Earliest_RDD or po.RDD or '')[:10] }}</td>
+                        <td>{{ po.RDD_Source or (po.Merge_Method if po.Merge_Method else '—') }}</td>
+                        <td>{{ (po.BD_Tracker_ETA or '')[:10] }}</td>
+                        <td>{{ (po.Earliest_EE_ETA or po.Earliest_ETA or '')[:10] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if table.total_pages > 1 %}
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <small class="text-muted">Page {{ table.page }} of {{ table.total_pages }}</small>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% set qs = '&'.join([
+                        'run_id=' + (active.run_id or run.run_id) if (active.run_id or run.run_id) else '',
+                        ('completed=1' if completed else ''),
+                        ('search=' + active.search|urlencode if active.search else ''),
+                        ('risk=' + active.risk if active.risk else ''),
+                        ('dq=' + active.dq|urlencode if active.dq else ''),
+                        ('supplier=' + active.supplier|urlencode if active.supplier else ''),
+                        ('country=' + active.country|urlencode if active.country else ''),
+                        ('bd_match=' + active.bd_match|urlencode if active.bd_match else ''),
+                        ('ee_match=' + active.ee_match|urlencode if active.ee_match else ''),
+                    ])|trim('&') %}
+                    {% if table.page > 1 %}
+                    <li class="page-item"><a class="page-link" href="?page={{ table.page - 1 }}&{{ qs }}">&laquo;</a></li>
+                    {% endif %}
+                    {% for p in range([1, table.page - 2]|max, [table.total_pages + 1, table.page + 3]|min) %}
+                    <li class="page-item {% if p == table.page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ p }}&{{ qs }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if table.page < table.total_pages %}
+                    <li class="page-item"><a class="page-link" href="?page={{ table.page + 1 }}&{{ qs }}">&raquo;</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleCompleted(checked) {
+    var url = new URL(window.location.href);
+    if (checked) {
+        url.searchParams.set('completed', '1');
+    } else {
+        url.searchParams.delete('completed');
+    }
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Skeleton removal once content is loaded
+    var toggles = document.querySelectorAll('.form-check-input');
+    toggles.forEach(function(t) {
+        if (t.id === 'completedToggle') {
+            // Already handled by onchange
+        }
+    });
+});
+</script>
+{% endblock %}

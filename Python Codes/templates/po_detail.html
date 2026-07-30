@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}PO {{ po_number }}{% endblock %}
+
+{% block content %}
+{% set run = detail.run %}
+{% set po = detail.po_number %}
+{% set summary = detail.summary %}
+{% set detail_rows = detail.detail_rows %}
+{% set threshold = detail.threshold %}
+
+<div class="mb-3">
+    <a href="{{ url_for('dashboard', **dashboard_params) }}" class="btn btn-sm btn-outline-secondary">&larr; Back to Dashboard</a>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <h3 class="mb-1">PO <code>{{ po_number }}</code></h3>
+        <span class="text-muted small">Run: <code>{{ run.run_id[:12] }}...</code> &middot; {{ run.completed_at[:19] or run.created_at[:19] }}</span>
+    </div>
+</div>
+
+<!-- ===== PO-Level Risk & DQ ===== -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="po-detail-section">
+                    <h5>Operational Risk</h5>
+                    {% if threshold.active %}
+                    {% set rc = summary.Overall_Risk_Category or 'Rules not configured' %}
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        {% if rc == 'Emergency' %}
+                        <span class="badge badge-risk-emergency fs-6">Emergency</span>
+                        {% elif rc == 'Critical' %}
+                        <span class="badge badge-risk-critical fs-6">Critical</span>
+                        {% elif rc == 'Watchlist' %}
+                        <span class="badge badge-risk-watchlist fs-6">Watchlist</span>
+                        {% elif rc == 'Normal' or rc == 'On Track' %}
+                        <span class="badge badge-risk-normal fs-6">{{ rc }}</span>
+                        {% else %}
+                        <span class="badge badge-neutral fs-6">{{ rc }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="mb-1 small">
+                        <strong>Calculation status:</strong>
+                        <code>{{ summary.Risk_Calculation_Status or 'N/A' }}</code>
+                    </p>
+                    {% if summary.Risk_Calculation_Reasons %}
+                    <p class="mb-0 small"><strong>Reason:</strong> {{ summary.Risk_Calculation_Reasons }}</p>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-muted small">Risk rules not configured. Operational risk is not available.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="po-detail-section">
+                    <h5>Data Quality</h5>
+                    {% set dq = summary.Data_Quality_Severity or 'OK' %}
+                    {% if dq == 'Missing_Data' %}
+                    <span class="badge badge-dq-missing fs-6">Missing Data</span>
+                    {% elif dq != 'OK' %}
+                    <span class="badge bg-secondary fs-6">{{ dq }}</span>
+                    {% else %}
+                    <span class="badge bg-light text-muted fs-6">OK</span>
+                    {% endif %}
+                    {% if summary.Data_Quality_Reasons %}
+                    <p class="mt-2 mb-0 small"><strong>Reason:</strong> {{ summary.Data_Quality_Reasons }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Related Materials & Detail Rows ===== -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Related Materials / Detail Rows</span>
+        <span class="badge bg-secondary">{{ detail_rows|length }} row{% if detail_rows|length != 1 %}s{% endif %}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="po-table-wrap">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Material / AGI</th>
+                        <th>Partial Shipment</th>
+                        <th>Product Name</th>
+                        <th>Open Qty</th>
+                        <th>Unit</th>
+                        <th>Risk</th>
+                        <th>Next Milestone</th>
+                        <th>RDD</th>
+                        <th>BD ETA</th>
+                        <th>EE ETA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in detail_rows %}
+                    <tr>
+                        <td><code>{{ row.Standardised_Material_AGI or row.Standardised_Material_AGI_Stripped or '—' }}</code></td>
+                        <td>{{ row.Partial_Shipment_Reference or '—' }}</td>
+                        <td>{{ row.Product_Name or '—' }}</td>
+                        <td>{{ row.Open_Quantity or '—' }}</td>
+                        <td>{{ row.Unit_of_Measure or '—' }}</td>
+                        <td>
+                            {% set rc = row.Overall_Risk_Category or '—' %}
+                            {% if rc == 'Emergency' %}
+                            <span class="badge badge-risk-emergency">Emergency</span>
+                            {% elif rc == 'Critical' %}
+                            <span class="badge badge-risk-critical">Critical</span>
+                            {% elif rc == 'Watchlist' %}
+                            <span class="badge badge-risk-watchlist">Watchlist</span>
+                            {% elif rc == 'Normal' %}
+                            <span class="badge badge-risk-normal">Normal</span>
+                            {% else %}
+                            <span class="badge badge-neutral">{{ rc[:12] }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.Next_Required_Milestone or '—' }}</td>
+                        <td>{{ (row.RDD or '')[:10] }}</td>
+                        <td>{{ (row.BD_Tracker_ETA or '')[:10] }}</td>
+                        <td>{{ (row.Earliest_EE_ETA or row.Latest_EE_ETA or '')[:10] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Milestone Dates ===== -->
+<div class="card mb-4">
+    <div class="card-header">Milestone Dates</div>
+    <div class="card-body p-0">
+        <div class="po-table-wrap">
+            <table class="table table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Milestone</th>
+                        <th>Date</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set milestones = [
+                        ('LC Date', summary.LC_Date or '', 'BD Tracker'),
+                        ('SI Shared', summary.SI_Shared_Date or '', 'BD Tracker'),
+                        ('RDD', summary.RDD or '', summary.RDD_Source or 'Various'),
+                        ('OBL/EBL Received', summary.OBL_EBL_Received_Date or '', 'BD Tracker'),
+                        ('Final Docs Received', summary.Final_Documents_Received_Date or '', 'BD Tracker'),
+                    ] %}
+                    {% if detail_rows %}
+                    {% set m2 = [
+                        ('BD Tracker ETD', detail_rows[0].BD_Tracker_ETD or '', 'BD Tracker'),
+                        ('BD Tracker ETA', detail_rows[0].BD_Tracker_ETA or '', 'BD Tracker'),
+                        ('Earliest EE ETA', detail_rows[0].Earliest_EE_ETA or '', 'Eagle Eye'),
+                        ('Latest EE ETA', detail_rows[0].Latest_EE_ETA or '', 'Eagle Eye'),
+                    ] %}
+                    {% set milestones = milestones + m2 %}
+                    {% endif %}
+                    {% for label, date_val, source in milestones %}
+                    {% if date_val %}
+                    <tr>
+                        <td>{{ label }}</td>
+                        <td>{{ date_val[:10] }}</td>
+                        <td><span class="badge bg-light text-muted">{{ source }}</span></td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ===== BD vs EE ETA Comparison ===== -->
+<div class="card mb-4">
+    <div class="card-header">ETA Comparison</div>
+    <div class="card-body">
+        {% set has_bd = false %}{% set has_ee = false %}
+        {% for row in detail_rows %}
+        {% if row.BD_Tracker_ETA %}{% set has_bd = true %}{% endif %}
+        {% if row.Earliest_EE_ETA %}{% set has_ee = true %}{% endif %}
+        {% endfor %}
+
+        {% if has_bd or has_ee %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="eta-comparison-card">
+                    <strong class="small text-muted text-uppercase">BD Tracker ETA</strong>
+                    {% if has_bd %}
+                    {% for row in detail_rows %}
+                    {% if row.BD_Tracker_ETA %}
+                    <div class="eta-comparison-item d-flex justify-content-between">
+                        <span><code>{{ row.Standardised_Material_AGI or '—' }}</code></span>
+                        <span>{{ row.BD_Tracker_ETA[:10] }}</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-muted small mt-1">No BD Tracker ETA available</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="eta-comparison-card">
+                    <strong class="small text-muted text-uppercase">Eagle Eye ETA</strong>
+                    {% if has_ee %}
+                    {% for row in detail_rows %}
+                    {% if row.Earliest_EE_ETA %}
+                    <div class="eta-comparison-item d-flex justify-content-between">
+                        <span><code>{{ row.Standardised_Material_AGI or '—' }}</code></span>
+                        <span>{{ row.Earliest_EE_ETA[:10] }}</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-muted small mt-1">No Eagle Eye ETA available</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted small mb-0">No ETA data available for this PO.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== Source Trace ===== -->
+<div class="card mb-4">
+    <div class="card-header">Source Trace</div>
+    <div class="card-body">
+        <table class="table table-sm mb-0" style="max-width:600px;">
+            <tbody>
+                <tr><th>Run ID</th><td><code>{{ run.run_id }}</code></td></tr>
+                <tr><th>Pipeline Version</th><td>{{ run.pipeline_version or 'N/A' }}</td></tr>
+                <tr><th>Merge Method</th><td>{{ summary.Merge_Method or '—' }}</td></tr>
+                <tr><th>BD Tracker Match</th><td>{% if summary.Has_BD_Tracker_Match or summary.Has_BD_Tracker_Match == 1 %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td></tr>
+                <tr><th>Eagle Eye Match</th><td>{% if summary.Has_Eagle_Eye_Match or summary.Has_Eagle_Eye_Match == 1 %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td></tr>
+                <tr><th>Source Filename</th><td>{{ summary.Source_Filename or '—' }}</td></tr>
+                <tr><th>Source Row ID</th><td>{{ summary.Source_Row_ID or '—' }}</td></tr>
+                {% if summary.Quantity_Distribution_Note %}
+                <tr><th>Quantity Note</th><td class="small text-muted">{{ summary.Quantity_Distribution_Note }}</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('run_detail', run_id=run.run_id) }}" class="btn btn-sm btn-outline-primary">View Full Run Report</a>
+        <a href="{{ url_for('download_workbook', run_id=run.run_id) }}" class="btn btn-sm btn-outline-success">Download Workbook</a>
+    </div>
+</div>
+
+{% endblock %}

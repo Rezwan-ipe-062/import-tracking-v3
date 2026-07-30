@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Threshold Profiles — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; }
+    .brand { color: #009639; font-weight: 700; }
+    .badge-draft { background: #6c757d; }
+    .badge-pending { background: #ffc107; color: #000; }
+    .badge-approved { background: #0d6efd; }
+    .badge-active { background: #198754; }
+    .badge-inactive { background: #adb5bd; }
+    .badge-retired { background: #dc3545; }
+    .badge-expired { background: #6f42c1; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand brand" href="{{ url_for('admin_profiles') }}">Import Tracker Admin</a>
+      <div>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm me-2">Main Site</a>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">Logout</a>
+      </div>
+    </div>
+  </nav>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="mb-0">Threshold Profiles</h4>
+      <a href="{{ url_for('admin_profile_create') }}" class="btn btn-success">+ New Profile</a>
+    </div>
+
+    <div class="btn-group mb-3" role="group">
+      <a href="{{ url_for('admin_profiles') }}" class="btn btn-sm btn-outline-secondary {% if current_status == 'all' %}active{% endif %}">All</a>
+      <a href="{{ url_for('admin_profiles', status='Active') }}" class="btn btn-sm btn-outline-secondary {% if current_status == 'Active' %}active{% endif %}">Active</a>
+      <a href="{{ url_for('admin_profiles', status='Draft') }}" class="btn btn-sm btn-outline-secondary {% if current_status == 'Draft' %}active{% endif %}">Draft</a>
+      <a href="{{ url_for('admin_profiles', status='Pending_Approval') }}" class="btn btn-sm btn-outline-secondary {% if current_status == 'Pending_Approval' %}active{% endif %}">Pending</a>
+      <a href="{{ url_for('admin_profiles', status='Approved') }}" class="btn btn-sm btn-outline-secondary {% if current_status == 'Approved' %}active{% endif %}">Approved</a>
+    </div>
+
+    {% if not profiles %}
+      <div class="alert alert-info">No profiles found. <a href="{{ url_for('admin_profile_create') }}">Create the first profile</a>.</div>
+    {% endif %}
+
+    <div class="row g-3">
+      {% for p in profiles %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <h6 class="card-title mb-1">{{ p.profile_name }}</h6>
+                <span class="badge badge-{{ p.status.lower().replace('_','') }}">{{ p.status }}</span>
+              </div>
+              <p class="text-muted small mb-1">{{ p.country_code }} · v{{ p.version }}</p>
+              {% if p.description %}
+                <p class="small text-muted mb-2">{{ p.description[:120] }}{% if p.description|length > 120 %}...{% endif %}</p>
+              {% endif %}
+              <div class="small text-muted">
+                Created {{ p.created_at[:10] }} by {{ p.created_by }}
+                {% if p.approved_by %}<br>Approved by {{ p.approved_by }}{% endif %}
+                {% if p.effective_from %}<br>Effective {{ p.effective_from[:10] }}{% endif %}
+              </div>
+              <a href="{{ url_for('admin_profile_detail', profile_id=p.profile_id) }}" class="stretched-link"></a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+  "config_version": "1.0",
+  "last_updated": null,
+  "approved_by": null,
+  "rules_active": false,
+  "thresholds": {
+    "lead_time": {
+      "label": "Lead Time (LC \u2192 RDD days)",
+      "unit": "days",
+      "critical_threshold": null,
+      "emergency_threshold": null,
+      "watch_threshold": null,
+      "active": false
+    },
+    "clearance_buffer": {
+      "label": "Clearance Buffer (ETA \u2192 RDD days)",
+      "unit": "days",
+      "critical_threshold": null,
+      "emergency_threshold": null,
+      "watch_threshold": null,
+      "active": false
+    },
+    "rdd_proximity": {
+      "label": "RDD Proximity (days remaining)",
+      "unit": "days",
+      "critical_threshold": null,
+      "emergency_threshold": null,
+      "watch_threshold": null,
+      "active": false
+    },
+    "eta_delay": {
+      "label": "ETA Delay (ETA \u2192 RDD delay)",
+      "unit": "days",
+      "critical_threshold": null,
+      "emergency_threshold": null,
+      "watch_threshold": null,
+      "active": false
+    }
+  },
+  "data_quality_rules": {
+    "missing_bd_match": {
+      "severity": "Missing_Data",
+      "active": true
+    },
+    "missing_rdd": {
+      "severity": "Missing_Data",
+      "active": true
+    },
+    "missing_lc_date": {
+      "severity": "Missing_Data",
+      "active": true
+    }
+  }
+}

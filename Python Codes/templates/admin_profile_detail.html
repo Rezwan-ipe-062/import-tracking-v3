@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ profile.profile_name }} — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; }
+    .brand { color: #009639; font-weight: 700; }
+    .badge-draft, .badge-draft, .badge-draft { background: #6c757d; }
+    .badge-pending_approval { background: #ffc107; color: #000; }
+    .badge-approved { background: #0d6efd; }
+    .badge-active { background: #198754; }
+    .badge-inactive { background: #adb5bd; }
+    .badge-retired { background: #dc3545; }
+    .badge-expired { background: #6f42c1; }
+    .status-label { font-size: 0.85rem; padding: 0.25rem 0.6rem; border-radius: 0.25rem; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand brand" href="{{ url_for('admin_profiles') }}">Import Tracker Admin</a>
+      <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">Logout</a>
+    </div>
+  </nav>
+  <div class="container mt-4">
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div>
+        <h4 class="mb-1">{{ profile.profile_name }}</h4>
+        <p class="text-muted mb-0">
+          {{ profile.country_code }} · v{{ profile.version }}
+          <span class="badge bg-{{ 'success' if profile.status == 'Active' else 'warning' if profile.status == 'Pending_Approval' else 'primary' if profile.status == 'Approved' else 'secondary' if profile.status == 'Draft' else 'danger' if profile.status == 'Retired' else 'dark' }} ms-2">{{ profile.status }}</span>
+        </p>
+      </div>
+      <div class="d-flex gap-1 flex-wrap">
+        {% if profile.status == 'Draft' %}
+          <a href="{{ url_for('admin_profile_edit', profile_id=profile.profile_id) }}" class="btn btn-primary btn-sm">Edit</a>
+          <form method="POST" action="{{ url_for('admin_profile_submit', profile_id=profile.profile_id) }}" class="d-inline" onsubmit="return confirm('Submit for approval?')">
+            <input type="hidden" name="reason" value="Ready for review">
+            <button type="submit" class="btn btn-warning btn-sm">Submit for Approval</button>
+          </form>
+        {% endif %}
+        {% if profile.status == 'Pending_Approval' %}
+          <a href="{{ url_for('admin_profile_approve', profile_id=profile.profile_id) }}" class="btn btn-primary btn-sm">Approve</a>
+        {% endif %}
+        {% if profile.status == 'Approved' %}
+          <a href="{{ url_for('admin_profile_activate', profile_id=profile.profile_id) }}" class="btn btn-success btn-sm">Activate</a>
+        {% endif %}
+        {% if profile.status == 'Active' %}
+          <form method="POST" action="{{ url_for('admin_profile_deactivate', profile_id=profile.profile_id) }}" class="d-inline" onsubmit="return confirm('Deactivate this profile?')">
+            <input type="hidden" name="reason" value="Deactivation requested">
+            <button type="submit" class="btn btn-secondary btn-sm">Deactivate</button>
+          </form>
+        {% endif %}
+        {% if profile.status not in ('Retired', 'Expired') %}
+          <form method="POST" action="{{ url_for('admin_profile_retire', profile_id=profile.profile_id) }}" class="d-inline" onsubmit="return confirm('Retire this profile permanently?')">
+            <input type="hidden" name="reason" value="Retired">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Retire</button>
+          </form>
+        {% endif %}
+        {% if profile.status in ('Active', 'Approved') %}
+          <form method="POST" action="{{ url_for('admin_profile_new_version', profile_id=profile.profile_id) }}" class="d-inline">
+            <input type="hidden" name="reason" value="Create new version for edits">
+            <button type="submit" class="btn btn-outline-primary btn-sm">New Version</button>
+          </form>
+        {% endif %}
+        <a href="{{ url_for('admin_profile_history', profile_id=profile.profile_id) }}" class="btn btn-outline-info btn-sm">History</a>
+        <a href="{{ url_for('admin_profile_preview', profile_id=profile.profile_id) }}" class="btn btn-outline-success btn-sm">Impact Preview</a>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-5">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h6>Profile Info</h6>
+            <table class="table table-sm small">
+              <tr><td class="text-muted">Created</td><td>{{ profile.created_at[:19] }} by {{ profile.created_by }}</td></tr>
+              <tr><td class="text-muted">Approved</td><td>{{ profile.approved_at[:19] if profile.approved_at else '-' }} by {{ profile.approved_by or '-' }}</td></tr>
+              <tr><td class="text-muted">Effective</td><td>{{ profile.effective_from[:10] if profile.effective_from else '-' }} to {{ profile.effective_to[:10] if profile.effective_to else 'indefinite' }}</td></tr>
+              <tr><td class="text-muted">Description</td><td>{{ profile.description or '-' }}</td></tr>
+              <tr><td class="text-muted">Original Profile</td><td>{% if profile.original_profile_id %}<a href="{{ url_for('admin_profile_detail', profile_id=profile.original_profile_id) }}">v{{ profile.original_profile_id }}</a>{% else %}-{% endif %}</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-7">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h6>Milestone Rules</h6>
+            <div class="table-responsive">
+              <table class="table table-sm small">
+                <thead><tr><th>Milestone</th><th>Ref Date</th><th>Watch</th><th>Critical</th><th>Emergency</th><th>Owner</th><th>Status</th></tr></thead>
+                <tbody>
+                  {% for r in profile.rules %}
+                    <tr>
+                      <td>{{ r.milestone_name }}</td>
+                      <td>{{ r.reference_date_used }}</td>
+                      <td>{{ r.watchlist_days }}</td>
+                      <td>{{ r.critical_days }}</td>
+                      <td>{{ r.emergency_days }}</td>
+                      <td>{{ r.action_owner }}</td>
+                      <td>{% if r.is_active %}<span class="text-success">Active</span>{% else %}<span class="text-muted">Inactive</span>{% endif %}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <h6>Recent Audit</h6>
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+          <table class="table table-sm small">
+            <thead><tr><th>Date</th><th>Action</th><th>Changed By</th><th>Reason</th></tr></thead>
+            <tbody>
+              {% for a in audit[:15] %}
+                <tr>
+                  <td class="text-nowrap">{{ a.changed_at[:19] }}</td>
+                  <td><span class="badge bg-info">{{ a.action }}</span></td>
+                  <td>{{ a.changed_by }}</td>
+                  <td>{{ a.reason or '-' }}</td>
+                </tr>
+              {% endfor %}
+              {% if not audit %}
+                <tr><td colspan="4" class="text-muted">No audit entries</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

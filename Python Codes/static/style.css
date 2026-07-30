@@ -1,0 +1,374 @@
+:root {
+    --syngenta-green: #4CAF50;
+    --syngenta-green-dark: #388E3C;
+    --syngenta-green-light: #C8E6C9;
+    --risk-emergency: #dc3545;
+    --risk-critical: #fd7e14;
+    --risk-watchlist: #ffc107;
+    --risk-normal: #198754;
+    --dq-missing: #0d6efd;
+    --dq-ambiguous: #6f42c1;
+    --dq-exception: #20c997;
+    --neutral-info: #6c757d;
+    --not-available-bg: #f8f9fa;
+    --not-available-border: #dee2e6;
+}
+
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.navbar.bg-primary {
+    background-color: var(--syngenta-green) !important;
+}
+
+.btn-primary {
+    background-color: var(--syngenta-green);
+    border-color: var(--syngenta-green);
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--syngenta-green-dark);
+    border-color: var(--syngenta-green-dark);
+}
+.btn-outline-primary {
+    color: var(--syngenta-green);
+    border-color: var(--syngenta-green);
+}
+.btn-outline-primary:hover {
+    background-color: var(--syngenta-green);
+    border-color: var(--syngenta-green);
+    color: #fff;
+}
+
+.btn-success {
+    background-color: var(--syngenta-green-dark);
+    border-color: var(--syngenta-green-dark);
+}
+
+.border-success {
+    border-color: var(--syngenta-green) !important;
+}
+
+/* ===== Dashboard Cards ===== */
+.dashboard-card {
+    border-radius: 12px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+    border-left: 5px solid var(--neutral-info);
+    min-height: 130px;
+}
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.dashboard-card .card-body {
+    padding: 1.25rem;
+}
+.dashboard-card .card-count {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+.dashboard-card .card-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+}
+
+/* Risk cards */
+.card-emergency { border-left-color: var(--risk-emergency); }
+.card-emergency .card-count { color: var(--risk-emergency); }
+.card-critical { border-left-color: var(--risk-critical); }
+.card-critical .card-count { color: var(--risk-critical); }
+.card-watchlist { border-left-color: var(--risk-watchlist); }
+.card-watchlist .card-count { color: var(--risk-watchlist); }
+.card-normal { border-left-color: var(--risk-normal); }
+.card-normal .card-count { color: var(--risk-normal); }
+
+/* Data Health cards */
+.card-missing-data { border-left-color: var(--dq-missing); }
+.card-missing-data .card-count { color: var(--dq-missing); }
+.card-ambiguous { border-left-color: var(--dq-ambiguous); }
+.card-ambiguous .card-count { color: var(--dq-ambiguous); }
+.card-dq-exception { border-left-color: var(--dq-exception); }
+.card-dq-exception .card-count { color: var(--dq-exception); }
+
+/* Summary card */
+.card-summary { border-left-color: var(--neutral-info); }
+.card-summary .card-count { color: var(--neutral-info); }
+
+/* Group headers */
+.card-group-header {
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--neutral-info);
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 1rem;
+}
+
+/* Not available card state */
+.card-not-available {
+    background-color: var(--not-available-bg);
+    border: 2px dashed var(--not-available-border);
+    border-left: 5px solid var(--not-available-border);
+    cursor: default;
+    opacity: 0.7;
+}
+.card-not-available:hover {
+    transform: none;
+    box-shadow: none;
+}
+.card-not-available .card-count {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--neutral-info);
+}
+.card-not-available .not-available-badge {
+    font-size: 0.7rem;
+    background-color: var(--not-available-border);
+    color: #666;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* ===== Skeleton Loading ===== */
+.skeleton {
+    background: linear-gradient(90deg, #e9ecef 25%, #f8f9fa 50%, #e9ecef 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 6px;
+}
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+.skeleton-card {
+    min-height: 130px;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+.skeleton-count {
+    width: 60px;
+    height: 36px;
+    margin-bottom: 8px;
+}
+.skeleton-label {
+    width: 120px;
+    height: 14px;
+}
+.skeleton-table-row {
+    height: 48px;
+    margin-bottom: 4px;
+}
+
+/* ===== Run Context Bar ===== */
+.run-context-bar {
+    background: #fff;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 0;
+}
+.run-context-bar .run-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--neutral-info);
+}
+.run-context-bar .run-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* ===== Filter Chips ===== */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    background: #e9ecef;
+    border-radius: 16px;
+    padding: 3px 10px 3px 12px;
+    font-size: 0.82rem;
+    margin-right: 6px;
+    margin-bottom: 4px;
+}
+.filter-chip .chip-remove {
+    margin-left: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--neutral-info);
+    font-size: 1.1rem;
+    line-height: 1;
+}
+.filter-chip .chip-remove:hover {
+    color: #333;
+}
+
+/* ===== Status Badge Colours ===== */
+.badge-risk-emergency { background-color: var(--risk-emergency); color: #fff; }
+.badge-risk-critical { background-color: var(--risk-critical); color: #fff; }
+.badge-risk-watchlist { background-color: var(--risk-watchlist); color: #333; }
+.badge-risk-normal { background-color: var(--risk-normal); color: #fff; }
+.badge-dq-missing { background-color: var(--dq-missing); color: #fff; }
+.badge-dq-ambiguous { background-color: var(--dq-ambiguous); color: #fff; }
+.badge-dq-exception { background-color: var(--dq-exception); color: #fff; }
+.badge-neutral { background-color: var(--neutral-info); color: #fff; }
+.badge-test-profile {
+    background-color: var(--risk-watchlist);
+    color: #333;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* ===== Risk Rules Notice ===== */
+.risk-rules-notice {
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+}
+.risk-rules-notice .notice-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+
+/* ===== Warning Banner ===== */
+.warning-banner-completed-exceptions {
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+}
+.warning-banner-archive-warning {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+/* ===== Upload Slot ===== */
+.upload-slot {
+    border-left: 4px solid #dee2e6;
+    transition: border-left-color 0.2s ease;
+    min-height: 280px;
+}
+.upload-slot.border-success {
+    border-left-color: var(--syngenta-green);
+}
+.upload-slot.border-danger {
+    border-left-color: #dc3545;
+}
+.upload-slot.border-secondary {
+    border-left-color: #6c757d;
+}
+
+.status-indicator .badge {
+    font-size: 0.8rem;
+}
+
+#processing-status .spinner-border {
+    animation-duration: 0.8s;
+}
+
+.table > tbody > tr.table-success {
+    --bs-table-bg: var(--syngenta-green-light);
+}
+
+.footer {
+    font-size: 0.85rem;
+}
+
+code {
+    font-size: 0.85em;
+}
+
+.card-header .badge.fs-6 {
+    font-size: 0.9rem !important;
+}
+
+/* ===== PO Detail Page ===== */
+.po-detail-section {
+    margin-bottom: 1.5rem;
+}
+.po-detail-section h5 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--neutral-info);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #e9ecef;
+}
+.eta-comparison-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+.eta-comparison-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+.eta-comparison-item:last-child {
+    border-bottom: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1199.98px) {
+    .dashboard-card-grid > .col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+@media (max-width: 767.98px) {
+    .dashboard-card-grid > .col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .dashboard-card {
+        min-height: 100px;
+    }
+    .dashboard-card .card-count {
+        font-size: 1.8rem;
+    }
+}
+
+/* Sticky first column for PO table on small screens */
+.po-table-wrap {
+    overflow-x: auto;
+}
+.po-table-wrap table th:first-child,
+.po-table-wrap table td:first-child {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 1;
+}
+.po-table-wrap table thead th:first-child {
+    z-index: 2;
+}
+
+/* Completed toggle */
+.completed-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.completed-toggle-wrapper .form-check-input:checked {
+    background-color: var(--syngenta-green);
+    border-color: var(--syngenta-green);
+}
+
+/* Pagination */
+.pagination .page-link {
+    color: var(--syngenta-green);
+}
+.pagination .page-item.active .page-link {
+    background-color: var(--syngenta-green);
+    border-color: var(--syngenta-green);
+}

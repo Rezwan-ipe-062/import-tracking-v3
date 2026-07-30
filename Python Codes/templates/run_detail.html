@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Run {{ run.run_id[:12] }}...{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary mb-2">&larr; Back to Upload</a>
+        <h2 class="mb-1">
+            Run Detail
+            <code class="fs-5">{{ run.run_id[:20] }}{% if run.run_id|length > 20 %}...{% endif %}</code>
+        </h2>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Run Information</span>
+                {% set s = run.run_status %}
+                {% if s == 'Completed' %}
+                <span class="badge bg-success fs-6">{{ s }}</span>
+                {% elif s == 'Completed_With_Exceptions' %}
+                <span class="badge bg-warning text-dark fs-6">{{ s }}</span>
+                {% elif s == 'Completed_With_Archive_Warning' %}
+                <span class="badge bg-warning text-dark fs-6">{{ s }}</span>
+                {% elif s == 'Failed' %}
+                <span class="badge bg-danger fs-6">{{ s }}</span>
+                {% elif s == 'Processing' %}
+                <span class="badge bg-info fs-6">{{ s }}</span>
+                {% else %}
+                <span class="badge bg-secondary fs-6">{{ s }}</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr><th>Run ID</th><td><code>{{ run.run_id }}</code></td></tr>
+                        <tr><th>Created At</th><td>{{ run.created_at[:19] }}</td></tr>
+                        <tr><th>Completed At</th><td>{{ run.completed_at[:19] if run.completed_at else 'N/A' }}</td></tr>
+                        <tr><th>Pipeline Version</th><td>{{ run.pipeline_version }}</td></tr>
+                        <tr><th>Threshold Config</th><td>{{ run.threshold_config_version or 'N/A' }}</td></tr>
+                        {% if run.rejected_duplicate %}
+                        <tr><th>Duplicate</th><td><span class="badge bg-warning text-dark">Yes</span>
+                        {% if run.duplicate_of_run_id %}
+                        — duplicate of <a href="{{ url_for('run_detail', run_id=run.duplicate_of_run_id) }}"><code>{{ run.duplicate_of_run_id[:12] }}...</code></a>
+                        {% endif %}
+                        </td></tr>
+                        {% endif %}
+                        {% if run.run_notes %}
+                        <tr><th>Notes</th><td>{{ run.run_notes }}</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Source Files</div>
+            <div class="card-body">
+                {% if source_files %}
+                <ul class="list-unstyled mb-0">
+                    {% for sf in source_files %}
+                    <li class="mb-2">
+                        <strong>{{ sf.source_type|replace('_', ' ')|title }}:</strong><br>
+                        <span class="small text-muted">{{ sf.original_filename|basename }}</span><br>
+                        <a href="{{ url_for('download_source_file', run_id=run.run_id, source_type=sf.source_type) }}" class="btn btn-sm btn-outline-secondary mt-1">Download</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No source file records</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Results Summary</div>
+            <div class="card-body">
+                <table class="table table-sm table-bordered" style="max-width: 600px;">
+                    <thead class="table-light">
+                        <tr><th>Metric</th><th>Count</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Master Detail rows</td><td><strong>{{ row_counts.get('master_detail', 0) }}</strong></td></tr>
+                        <tr><td>PO Summary rows</td><td><strong>{{ row_counts.get('po_summary', 0) }}</strong></td></tr>
+                        <tr><td>Unmatched BD</td><td><strong>{{ row_counts.get('unmatched_bd', 0) }}</strong></td></tr>
+                        <tr><td>Unmatched EE</td><td><strong>{{ row_counts.get('unmatched_ee', 0) }}</strong></td></tr>
+                        <tr><td>Ambiguous Matches</td><td><strong>{{ row_counts.get('ambiguous_matches', 0) }}</strong></td></tr>
+                        <tr><td>DQ Exceptions</td><td><strong>{{ row_counts.get('dq_exceptions', 0) }}</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('download_workbook', run_id=run.run_id) }}" class="btn btn-success">
+                Download Full Workbook (Excel)
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

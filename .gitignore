@@ -1,0 +1,55 @@
+# --- Environment & Secrets ---
+.env
+.secrets
+*.key
+*.pem
+
+# --- Database ---
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# --- Application Data ---
+import_tracker.db
+Python Codes/import_tracker.db
+
+# --- Source Excel Files ---
+Excel Files/
+Python Codes/Excel Files/
+
+# --- Archives & Temp Workspaces ---
+archive/
+Python Codes/archive/
+Python Codes/uploads/
+uploads/
+
+# --- Python Cache ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+.pytest_cache/
+
+# --- Virtual Environments ---
+venv/
+.venv/
+env/
+.env/
+
+# --- IDE & OS ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Test Artifacts ---
+test_output/
+*.log
