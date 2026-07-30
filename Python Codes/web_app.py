@@ -1215,7 +1215,19 @@ def admin_restore():
 
             os.unlink(tmp_zip)
 
-            # Re-initialise DB to pick up restored data
+            # Remove stale WAL/SHM files from the old database —
+            # they are incompatible with the newly restored DB and would
+            # cause SQLite to read stale pages on the next connection.
+            for wal_ext in ("-wal", "-shm"):
+                stale_path = db_path + wal_ext
+                if os.path.isfile(stale_path):
+                    try:
+                        os.unlink(stale_path)
+                    except PermissionError:
+                        pass
+
+            # Re-initialise DB to pick up restored data.
+            # This also creates a clean WAL file for the restored database.
             conn = get_connection()
             init_database(conn)
             conn.close()
