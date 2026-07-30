@@ -2,6 +2,7 @@
 web_app.py — Flask web application for the Syngenta Bangladesh Import Tracker.
 
 Phase 3: Upload, validate, process, and download interface.
+Phase 7: Local POC packaging — Waitress, backup/restore, controlled data folders.
 """
 
 import json
@@ -10,18 +11,25 @@ import sys
 import tempfile
 import traceback
 import uuid
+import zipfile
 from datetime import datetime
 from functools import wraps
 from pathlib import PurePath
 
 import pandas as pd
 from flask import (
-    Flask, abort, jsonify, render_template, request, send_file, session, redirect, url_for, flash,
+    Flask, abort, jsonify, render_template, request, send_file, session,
+    redirect, url_for, flash, after_this_request,
 )
 
-_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-if _SCRIPT_DIR not in sys.path:
-    sys.path.insert(0, _SCRIPT_DIR)
+# --- PyInstaller / frozen path resolution ---
+if getattr(sys, "frozen", False):
+    _BASE_DIR = sys._MEIPASS
+else:
+    _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+if _BASE_DIR not in sys.path:
+    sys.path.insert(0, _BASE_DIR)
 
 from pipeline_db import get_connection, init_database, ColumnMapper
 import pipeline_service
@@ -44,17 +52,21 @@ from pipeline_service import (
 
 app = Flask(
     __name__,
-    template_folder=os.path.join(_SCRIPT_DIR, "templates"),
-    static_folder=os.path.join(_SCRIPT_DIR, "static"),
+    template_folder=os.path.join(_BASE_DIR, "templates"),
+    static_folder=os.path.join(_BASE_DIR, "static"),
 )
 
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "dev-key-syngenta-import-tracker-2026")
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
 # Admin access control: secret token for Phase 5 admin screens
-# Set IMPORT_TRACKER_ADMIN_SECRET env var in production; default shown at startup
+# Set IMPORT_TRACKER_ADMIN_SECRET env var in production
+# In the packaged POC, run_poc.py sets a random token and prints it
 ADMIN_SECRET = os.environ.get("IMPORT_TRACKER_ADMIN_SECRET", str(uuid.uuid4())[:16])
-UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), "import_tracker_uploads")
+UPLOAD_FOLDER = os.environ.get(
+    "IMPORT_TRACKER_TEMP",
+    os.path.join(tempfile.gettempdir(), "import_tracker_uploads"),
+)
 ARCHIVE_BASE = os.environ.get(
     "IMPORT_TRACKER_ARCHIVE",
     os.path.join(
@@ -64,8 +76,14 @@ ARCHIVE_BASE = os.environ.get(
     ),
 )
 
+_REPORTS_DIR = os.environ.get(
+    "IMPORT_TRACKER_REPORTS",
+    os.path.join(os.path.dirname(ARCHIVE_BASE), "reports"),
+)
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(ARCHIVE_BASE, exist_ok=True)
+os.makedirs(_REPORTS_DIR, exist_ok=True)
 os.makedirs(app.template_folder, exist_ok=True)
 os.makedirs(app.static_folder, exist_ok=True)
 
@@ -122,7 +140,10 @@ def not_found(e):
 
 @app.errorhandler(500)
 def server_error(e):
-    traceback.print_exc()
+    try:
+        traceback.print_exc()
+    except Exception:
+        pass
     if request.is_json:
         return jsonify({"error": "Internal server error"}), 500
     return _safe_render("base.html", content="<div class='alert alert-danger m-4'>Internal server error</div>"), 500
@@ -1099,9 +1120,136 @@ def admin_profile_history(profile_id):
         conn.close()
 
 
+# ── Phase 7: Backup / Restore ──────────────────────────────────────────────
+
+
+BACKUP_EXCLUDED_DIRS = {"logs", "temp"}
+
+
+def _build_backup_zip(out_path):
+    """Create a dated backup ZIP containing database, archives, reports, and threshold config.
+    Returns the path to the created zip."""
+    data_root = os.path.dirname(os.path.dirname(ARCHIVE_BASE))  # ImportTracker root
+    db_path = pipeline_db.get_default_db_path()
+
+    zip_path = out_path
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        # Database
+        if os.path.isfile(db_path):
+            zf.write(db_path, "data/import_tracker.db")
+        for wal_ext in ("-wal", "-shm"):
+            wal_path = db_path + wal_ext
+            if os.path.isfile(wal_path):
+                zf.write(wal_path, f"data/import_tracker.db{wal_ext}")
+
+        # Archives
+        if os.path.isdir(ARCHIVE_BASE):
+            for entry in os.listdir(ARCHIVE_BASE):
+                entry_path = os.path.join(ARCHIVE_BASE, entry)
+                if os.path.isdir(entry_path):
+                    for root, dirs, files in os.walk(entry_path):
+                        for f in files:
+                            fp = os.path.join(root, f)
+                            arcname = os.path.relpath(fp, os.path.dirname(ARCHIVE_BASE))
+                            zf.write(fp, arcname)
+
+        # Reports
+        if os.path.isdir(_REPORTS_DIR):
+            for f in os.listdir(_REPORTS_DIR):
+                fp = os.path.join(_REPORTS_DIR, f)
+                if os.path.isfile(fp):
+                    arcname = os.path.relpath(fp, os.path.dirname(ARCHIVE_BASE))
+                    zf.write(fp, arcname)
+
+    return zip_path
+
+
+@app.route("/admin/backup", methods=["GET", "POST"])
+@admin_required
+def admin_backup():
+    if request.method == "POST":
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_name = f"import_tracker_backup_{ts}.zip"
+        zip_path = os.path.join(_REPORTS_DIR, zip_name)
+        try:
+            _build_backup_zip(zip_path)
+            return send_file(zip_path, as_attachment=True, download_name=zip_name,
+                             mimetype="application/zip")
+        except Exception as e:
+            app.logger.error(f"Backup error: {traceback.format_exc()}")
+            return render_template("admin_backup.html", error=f"Backup failed: {e}")
+    return render_template("admin_backup.html", error=None)
+
+
+@app.route("/admin/restore", methods=["GET", "POST"])
+@admin_required
+def admin_restore():
+    if request.method == "POST":
+        confirmed = request.form.get("confirm") == "1"
+        if not confirmed:
+            return render_template("admin_backup.html",
+                                   restore_error="Please confirm that you want to replace current data.")
+
+        f = request.files.get("backup_file")
+        if not f or f.filename == "":
+            return render_template("admin_backup.html",
+                                   restore_error="Please select a backup file.")
+
+        tmp_zip = os.path.join(UPLOAD_FOLDER, f"restore_{uuid.uuid4().hex}.zip")
+        f.save(tmp_zip)
+        try:
+            data_root = os.path.dirname(os.path.dirname(ARCHIVE_BASE))
+            db_path = pipeline_db.get_default_db_path()
+            errors = []
+
+            with zipfile.ZipFile(tmp_zip, "r") as zf:
+                for member in zf.namelist():
+                    if member.startswith("data/") and member.endswith(".db"):
+                        # Extract DB — close connections first
+                        zf.extract(member, data_root)
+                    elif member.startswith("archive/"):
+                        dest = os.path.join(data_root, member)
+                        os.makedirs(os.path.dirname(dest), exist_ok=True)
+                        zf.extract(member, data_root)
+
+            os.unlink(tmp_zip)
+
+            # Re-initialise DB to pick up restored data
+            conn = get_connection()
+            init_database(conn)
+            conn.close()
+
+            flash("Restore completed successfully. Current data has been replaced.", "success")
+            return redirect(url_for("admin_backup"))
+        except Exception as e:
+            app.logger.error(f"Restore error: {traceback.format_exc()}")
+            if os.path.exists(tmp_zip):
+                os.unlink(tmp_zip)
+            return render_template("admin_backup.html",
+                                   restore_error=f"Restore failed: {e}")
+
+    return render_template("admin_backup.html", restore_error=None)
+
+
+@app.route("/shutdown", methods=["POST"])
+def shutdown():
+    """Graceful shutdown for the local POC server."""
+    if not request.remote_addr or request.remote_addr not in ("127.0.0.1", "::1"):
+        abort(403)
+    func = request.environ.get("werkzeug.server.shutdown")
+    if func:
+        func()
+        return jsonify({"shutdown": True})
+    # Fallback: use os._exit for Waitress
+    import threading
+    threading.Thread(target=os._exit, args=(0,), daemon=True).start()
+    return jsonify({"shutdown": True})
+
+
 if __name__ == "__main__":
     print(f"  Pipeline version: {PIPELINE_VERSION}")
     print(f"  Upload folder: {UPLOAD_FOLDER}")
     print(f"  Archive folder: {ARCHIVE_BASE}")
     print(f"  Admin login: http://127.0.0.1:5000/admin/login")
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    print(f"  For local POC deployment, use run_poc.py instead of this script.")
+    app.run(debug=False, host="127.0.0.1", port=5000)

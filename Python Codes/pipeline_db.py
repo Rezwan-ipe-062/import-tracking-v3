@@ -10,6 +10,9 @@ import sqlite3
 
 
 def get_default_db_path():
+    data_dir = os.environ.get("IMPORT_TRACKER_DATA_DIR")
+    if data_dir:
+        return os.path.join(data_dir, "import_tracker.db")
     return os.path.join(os.path.dirname(__file__), "..", "import_tracker.db")
 
 

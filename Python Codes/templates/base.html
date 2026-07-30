@@ -30,6 +30,17 @@
                     <li class="nav-item">
                         <a class="nav-link{% if request.path.startswith('/dashboard') %} active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle{% if request.path.startswith('/admin') %} active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                            System
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('admin_backup') }}">Backup &amp; Restore</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_profiles') }}">Threshold Profiles</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_login') }}">Admin Login</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>

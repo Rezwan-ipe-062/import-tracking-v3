@@ -13,6 +13,7 @@
 {% set completed = dashboard.completed %}
 
 <!-- ===== Run Context Bar ===== -->
+{% if run %}
 <div class="run-context-bar mb-3">
     <div class="row align-items-center g-2">
         <div class="col-lg-3 col-md-4">
@@ -82,6 +83,7 @@
     <strong>Archive warning</strong> — Source files for this run were not archived successfully.
     <a href="{{ url_for('run_detail', run_id=run.run_id) }}" class="btn btn-sm btn-outline-danger ms-auto">View Run Details</a>
 </div>
+{% endif %}
 {% endif %}
 
 <!-- ===== Risk Rules Not Configured Notice ===== -->

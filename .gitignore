@@ -50,6 +50,11 @@ env/
 .DS_Store
 Thumbs.db
 
+# --- Build Artifacts ---
+release/
+*.spec
+Python Codes/*.spec
+
 # --- Test Artifacts ---
 test_output/
 *.log
