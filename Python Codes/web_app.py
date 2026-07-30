@@ -31,6 +31,7 @@ else:
 if _BASE_DIR not in sys.path:
     sys.path.insert(0, _BASE_DIR)
 
+import pipeline_db
 from pipeline_db import get_connection, init_database, ColumnMapper
 import pipeline_service
 from pipeline_service import (
