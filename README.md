@@ -54,13 +54,32 @@ stale facts. The exact window is shown on the Thresholds & Refresh page.
 
 ## Running it
 
+### A. Local (nothing shared)
+
 ```bash
-cd anchor
 pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-The browser opens the dashboard directly. It runs entirely on your laptop.
+Runs entirely on your machine. `.anchor/` persists between refreshes on that
+machine and a hard **Clear Local Data &amp; Start Fresh** button wipes it when you
+next want to upload a fresh set.
+
+### B. Hosted on Streamlit Community Cloud (open a URL, no install)
+
+1. Push this repo to GitHub.
+2. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with the
+   GitHub account that owns (or can connect to) the repo.
+3. **Create app** → pick the repo → set **Main file** to `app.py`.
+4. **Deploy.** You get a public URL (`something.streamlit.app`) — anyone with the
+   link opens the dashboard in a browser and uploads their Excels with **no local
+   install**.
+
+> **Persistence caveat on the free hosted tier:** the app's working directory is
+> on the Cloud side, so `.anchor/` persists *within an active session* (refreshes
+> survive) but **not across idle/sleep gaps** — cold restarts can reset it. For
+> multi-day/month rollout you'd pin it on a persistent host. The hard **Clear**
+> button works the same either way.
 
 ### First run
 
@@ -79,7 +98,8 @@ anchor/
   logic.py          # data-confidence, suggested follow-up/owner, risk buckets
   theme.py          # brand + severity tokens and injected CSS
   ui/components.py  # pills, KPI cards, global search, export-metadata helper
-  tests/acceptance.py   # run: python -m tests.acceptance
+  .streamlit/config.toml  # branded theme + upload cap (used by the host)
+  tests/acceptance.py     # run: python -m tests.acceptance
 requirements.txt
 ```
 
