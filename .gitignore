@@ -1,0 +1,36 @@
+# ---- local app state (never commit) ----
+.anchor/
+local_data/
+uploads/
+
+# ---- staged uploads (transient, in %TEMP%) ----
+__work__/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ---- source commercial Excel data (never commit) ----
+*.xlsx
+*.xlsm
+*.xlsb
+*.xls
+
+# ---- generated outputs / exports / notes / caches / logs / env ----
+!*_cleaned.xlsx
+anchor_master*.xlsx
+anchor_export*.xlsx
+exports/
+output/
+cache/
+*.log
+.csv
+.parquet
+*.db
+*.sqlite
+.env
+.env.*
+!anchor-logo.png
