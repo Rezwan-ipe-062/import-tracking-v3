@@ -27,9 +27,7 @@ Requires: openpyxl  (pip install openpyxl)
 
 import datetime
 import re
-import tkinter as tk
 from pathlib import Path
-from tkinter import filedialog
 
 import openpyxl
 from openpyxl.styles import Font
@@ -412,6 +410,9 @@ def clean_workbook(src_path, dst_path):
 
 
 def pick_file(title):
+    import tkinter as tk
+    from tkinter import filedialog
+
     root = tk.Tk()
     root.withdraw()
     root.attributes("-topmost", True)

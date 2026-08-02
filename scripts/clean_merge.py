@@ -34,9 +34,7 @@ Requires: openpyxl  (pip install openpyxl)
 
 import datetime
 import os
-import tkinter as tk
 from pathlib import Path
-from tkinter import filedialog
 
 import openpyxl
 from openpyxl.styles import Font
@@ -548,6 +546,9 @@ def write_workbook(dst_path, sheets):
 
 
 def pick_file(title):
+    import tkinter as tk
+    from tkinter import filedialog
+
     root = tk.Tk()
     root.withdraw()
     root.attributes("-topmost", True)
