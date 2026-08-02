@@ -34,3 +34,4 @@ cache/
 .env
 .env.*
 !anchor-logo.png
+!anchor-logo-sm.png

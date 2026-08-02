@@ -10,9 +10,21 @@ every colour/radius/shadow stays driven by one token set instead of raw hex.
 """
 
 import base64
+import functools
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parent
+
+# Non-blocking Google Fonts: preconnect warms the socket; the stylesheet link
+# uses display=swap so text paints immediately with fallback fonts and swaps in
+# when the web font lands. Avoids the render-blocking @import-in-style pattern.
+_FONT_CSS_URL = ("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800"
+                 "&family=JetBrains+Mono:wght@500;600&display=swap")
+FONT_LINKS = (
+    '<link rel="preconnect" href="https://fonts.googleapis.com">'
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    f'<link rel="stylesheet" href="{_FONT_CSS_URL}">'
+)
 
 # --------------------------------------------------------------------------- #
 # Severity metadata -> semantic pill/dot CSS class names (resolved per theme).
@@ -124,18 +136,27 @@ LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" vie
   <circle cx="20" cy="30" r="4.2" fill="none" stroke="#2DD4BF" stroke-width="3"/>
 </svg>"""
 
-LOGO_FILE = APP_DIR / "anchor-logo.png"
+LOGO_FILE = APP_DIR / "anchor-logo-sm.png"
+
+
+@functools.lru_cache(maxsize=1)
+def _logo_b64():
+    """Base64 data-URI for the pre-sized logo, encoded once per process."""
+    if LOGO_FILE.exists():
+        try:
+            return "data:image/png;base64," + base64.b64encode(
+                LOGO_FILE.read_bytes()).decode("ascii")
+        except OSError:
+            pass
+    return None
 
 
 def logo_mark(width=34):
-    if LOGO_FILE.exists():
-        try:
-            b64 = base64.b64encode(LOGO_FILE.read_bytes()).decode("ascii")
-            return (f'<img src="data:image/png;base64,{b64}" width="{width}" '
-                    f'style="border-radius:9px;vertical-align:middle;box-shadow:'
-                    f'0 4px 14px rgba(0,0,0,.25)" alt="Anchor"/>')
-        except OSError:
-            pass
+    src = _logo_b64()
+    if src:
+        return (f'<img src="{src}" width="{width}" '
+                f'style="border-radius:9px;vertical-align:middle;box-shadow:'
+                f'0 4px 14px rgba(0,0,0,.25)" alt="Anchor"/>')
     return LOGO_SVG
 
 
@@ -143,9 +164,10 @@ def logo_mark(width=34):
 # The big injected stylesheet.
 # --------------------------------------------------------------------------- #
 def inject_css(theme="light"):
-    return css_vars(theme) + f"""<style>
+    return (css_vars(theme)
+            + FONT_LINKS
+            + f"""<style>
     /* ---------- base ---------- */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
     .anchor-root {{ color-scheme: {theme}; }}
     html, body, .stApp {{
       background: var(--a-bg); color: var(--a-ink);
@@ -330,4 +352,4 @@ def inject_css(theme="light"):
     @media (prefers-reduced-motion: reduce) {{
       *, *::before, *::after {{ transition: none !important; animation: none !important; }}
     }}
-    </style>"""
+    </style>""")
