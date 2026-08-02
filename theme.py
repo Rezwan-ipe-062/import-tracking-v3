@@ -4,6 +4,11 @@ Single source of truth for colour, severity semantics and the injected CSS.
 Kept as plain Python so Streamlit can inline it without a separate build step.
 """
 
+import base64
+from pathlib import Path
+
+APP_DIR = Path(__file__).resolve().parent
+
 # ---------------------------------------------------------------------------
 # Brand + severity tokens (WCAG AA-conscious pairs)
 # ---------------------------------------------------------------------------
@@ -40,6 +45,22 @@ LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" vie
         stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="20" cy="30" r="4.2" fill="none" stroke="#0D9488" stroke-width="3"/>
 </svg>"""
+
+# Official brand mark: anchor-logo.png lives beside this file and is used when
+# present, otherwise we fall back to the inline navy/teal SVG.
+LOGO_FILE = APP_DIR / "anchor-logo.png"
+
+
+def logo_mark(width=34):
+    """Return an <img> for the official PNG logo, or the inline SVG fallback."""
+    if LOGO_FILE.exists():
+        try:
+            b64 = base64.b64encode(LOGO_FILE.read_bytes()).decode("ascii")
+            return (f'<img src="data:image/png;base64,{b64}" width="{width}" '
+                    f'style="border-radius:8px;vertical-align:middle" alt="Anchor"/>')
+        except OSError:
+            pass
+    return LOGO_SVG
 
 
 def inject_css(SEVERITY=SEVERITY, BG=BG, SURFACE=SURFACE, BORDER=BORDER,

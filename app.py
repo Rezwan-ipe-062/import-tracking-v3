@@ -92,7 +92,7 @@ def welcome_empty():
     _css()
     brand_block()
     st.markdown(f'<div style="max-width:560px;margin:6vh auto;text-align:center">'
-                f'{theme.LOGO_SVG}'
+                f'{theme.logo_mark(64)}'
                 f'<div style="font-size:2.2rem;font-weight:700;margin:.7rem 0 .2rem">Anchor</div>'
                 f'<div class="muted" style="font-size:1.02rem">Import visibility and '
                 f'action prioritisation</div>'

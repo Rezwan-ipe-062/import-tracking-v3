@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from pipeline import freshness_state
-from theme import SEVERITY, PRIORITY_ORDER, LOGO_SVG
+from theme import SEVERITY, PRIORITY_ORDER, LOGO_SVG, logo_mark
 
 
 # ------------------------------------------------------------------------ #
@@ -51,7 +51,7 @@ def parse_iso(s):
 
 def brand_block():
     st.markdown(
-        f'<div class="anchor-brand">{LOGO_SVG}'
+        f'<div class="anchor-brand">{logo_mark()}'
         f'<div><div class="brand-name">Anchor</div>'
         f'<div class="brand-sub">Import visibility &amp; action prioritisation</div></div>'
         f'</div>', unsafe_allow_html=True)
