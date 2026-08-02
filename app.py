@@ -41,7 +41,13 @@ FRESH_DAYS = 3
 
 
 def _css():
-    st.markdown(theme.inject_css(), unsafe_allow_html=True)
+    st.markdown(theme.inject_css(_current_theme()), unsafe_allow_html=True)
+
+
+def _current_theme():
+    """Resolve the active theme from the sidebar widget (survives reruns)."""
+    return st.session_state.get("anchor_theme_widget") or \
+        st.session_state.get("anchor_theme", "light")
 
 
 def _goto(view):
@@ -311,6 +317,8 @@ def render_app():
 
     st.session_state["context"] = ctx
 
+    _render_sidebar_theme_toggle()
+
     page = st.sidebar.radio("View", PAGES,
                             index=_page_index(), key="nav_radio")
     st.session_state["page"] = page
@@ -318,18 +326,36 @@ def render_app():
     if page != "Thresholds & Refresh":
         topbar(ctx.get("meta", {}))
 
-    if page == "Action Centre":
-        action_centre(ctx)
-    elif page == "PO Journey":
-        po_journey(ctx)
-    elif page == "Shipment Visibility":
-        shipment_visibility(ctx)
-    elif page == "Risk & Exposure":
-        risk_and_exposure(ctx)
-    elif page == "Data Quality":
-        data_quality(ctx)
-    else:
-        thresholds_and_refresh(ctx)
+    st.markdown('<div class="anchor-root">', unsafe_allow_html=True)
+    try:
+        if page == "Action Centre":
+            action_centre(ctx)
+        elif page == "PO Journey":
+            po_journey(ctx)
+        elif page == "Shipment Visibility":
+            shipment_visibility(ctx)
+        elif page == "Risk & Exposure":
+            risk_and_exposure(ctx)
+        elif page == "Data Quality":
+            data_quality(ctx)
+        else:
+            thresholds_and_refresh(ctx)
+    finally:
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+def _render_sidebar_theme_toggle():
+    """Light / dark segmented toggle in the sidebar; flips theme on a rerun."""
+    st.sidebar.markdown('<div class="sidebar-theme">Appearance</div>',
+                        unsafe_allow_html=True)
+    cur = st.session_state.get("anchor_theme_widget") or \
+        st.session_state.get("anchor_theme", "light")
+    selected = st.sidebar.segmented_control(
+        "appearance", ["light", "dark"], key="anchor_theme_widget",
+        default=cur, selection_mode="single",
+        format_func=lambda s: "light" if s == "light" else "dark",
+    )
+    st.session_state["anchor_theme"] = selected or cur
 
 
 def _page_index():
@@ -392,6 +418,10 @@ def action_centre(ctx):
     no_bd = int(df["BD Tracker ETA"].isna().sum()) if "BD Tracker ETA" in df.columns else 0
     no_ee = int(df["EE ETA"].isna().sum()) if "EE ETA" in df.columns else 0
 
+    st.markdown('<div class="page-head"><div><h1>Action Centre</h1>'
+                '<div class="head-sub">Prioritised open import POs by severity and '
+                'requested delivery date.</div></div></div>', unsafe_allow_html=True)
+
     kpi_row([
         ("Active Open POs", open_count, "plain"),
         ("Critical", sev.get("Critical", 0), "crit"),
@@ -406,22 +436,42 @@ def action_centre(ctx):
             "separately - never combined.")
     qty = logic.qty_by_unit(ctx.get("master") or [], headers, population_only=True)
     if qty:
-        cols = st.columns(len(qty))
+        qc = st.columns(len(qty))
         for i, (unit, v) in enumerate(qty.items()):
-            with cols[i]:
+            with qc[i]:
                 st.markdown(
-                    f'<div class="card" style="margin:.15rem 0">'
-                    f'<div class="kpi-value">{_fmt_q(v)}</div>'
+                    f'<div class="card"><div class="kpi-value">{_fmt_q(v)}</div>'
                     f'<div class="kpi-label">Open PO requirement &middot; {unit}</div></div>',
                     unsafe_allow_html=True)
 
-    section("Priority actions", "Sorted Critical > Urgent > Data Review > Monitor, "
-            "then RDD ascending.")
+    section("Priority actions", "Click a severity chip to zoom into those rows. "
+            "Sorted Critical > Urgent > Data Review > Monitor, then RDD ascending.")
     pdf = _priority_table(df, headers)
     if pdf.empty:
         empty_state("No open actions", "All POs are complete or monitor-only.")
     else:
-        st.dataframe(pdf, width="stretch", height=520, hide_index=True)
+        # Interactivity: filter by severity, show a matched queue.
+        sev_counts = {k: v for k, v in sev.items() if v}
+        if sev_counts:
+            pick = C.severity_chips({**sev_counts, "No BD record": no_bd,
+                                     "No EE evidence": no_ee},
+                                    key="ac_sev")
+        else:
+            pick = None
+        if pick == "No BD record":
+            col = "BD Tracker ETA"
+            shown = pdf[pdf[col].isna()] if col in pdf else pdf
+            st.caption(f"Showing {len(shown)} open PO(s) with no BD record.")
+        elif pick == "No EE evidence":
+            col = "EE ETA"
+            shown = pdf[pdf[col].isna()] if col in pdf else pdf
+            st.caption(f"Showing {len(shown)} open PO(s) with no Eagle Eye record.")
+        elif pick:
+            shown = pdf[pdf["Urgency"] == pick]
+            st.caption(f"Showing {len(shown)} {pick} open PO(s).")
+        else:
+            shown = pdf
+        st.dataframe(shown, width="stretch", height=520, hide_index=True)
 
     section("Open a PO journey")
     polist = sorted({str(p) for p in df["Purchasing Document"].dropna().unique()})
@@ -470,6 +520,9 @@ def po_journey(ctx):
     if po_col not in df.columns or df.empty:
         empty_state("No PO data", "Restore or upload a view first.")
         return
+    st.markdown('<div class="page-head"><div><h1>PO Journey</h1>'
+                '<div class="head-sub">Milestone trail and manager follow-up for a '
+                'single PO.</div></div></div>', unsafe_allow_html=True)
 
     c_search, c_po = st.columns([2.4, 1])
     with c_search:
@@ -567,8 +620,11 @@ def shipment_visibility(ctx):
     if df.empty:
         empty_state("No shipment data", "Restore or upload a view first.")
         return
-    st.markdown('<div class="muted">One row per container / evidence record. Open '
-                'quantity is never summed here (PO level only).</div>')
+    st.markdown('<div class="page-head"><div><h1>Shipment Visibility</h1>'
+                '<div class="head-sub">One row per container / evidence record.</div>'
+                '</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="muted">Open quantity is never summed this page '
+                '(PO level only).</div>')
     keep = [c for c in ["Purchasing Document", "From", "Container No.", "Tracking",
                         "Status", "EE ETD", "EE ETA", "Import Country"] if c in df.columns]
     view = df[keep].drop_duplicates()
@@ -593,8 +649,11 @@ def risk_and_exposure(ctx):
     if df.empty:
         empty_state("No risk data", "Restore or upload a view first.")
         return
-    st.markdown("Counts are distinct POs, never per-row across partial shipments; "
-                "no KG/L quantity is combined.")
+    st.markdown('<div class="page-head"><div><h1>Risk &amp; Exposure</h1>'
+                '<div class="head-sub">Distinct-PO exposure by country, supplier '
+                'and delivery window.</div></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="muted">Counts are distinct POs, never per-row across '
+                'partial shipments; no KG/L quantity is combined.</div>')
     crit = df[df["Urgency"].isin(["Critical", "Urgent"])] \
         if "Urgency" in df.columns else df
 
@@ -603,14 +662,14 @@ def risk_and_exposure(ctx):
         section("Critical / Urgent by Import country")
         if "Import Country" in crit.columns and "Purchasing Document" in crit.columns:
             s = crit.groupby("Import Country")["Purchasing Document"].nunique().sort_values(ascending=False)
-            st.bar_chart(s)
+            C.hbar(list(s.items()), key="risk_country")
         else:
             st.caption("No country field in this view.")
     with c2:
         section("Critical / Urgent by Supplier")
         if "Supplier Name" in crit.columns and "Purchasing Document" in crit.columns:
             s = crit.groupby("Supplier Name")["Purchasing Document"].nunique().sort_values(ascending=False).head(12)
-            st.bar_chart(s)
+            C.hbar(list(s.items()), key="risk_supplier")
         else:
             st.caption("No supplier field in this view.")
 
@@ -649,7 +708,7 @@ def risk_and_exposure(ctx):
         h = df.assign(horizon=df.apply(bucket, axis=1)) \
                 .groupby("horizon")["Purchasing Document"].nunique()
         h = h.reindex(["Overdue", "0-7d", "8-30d", "31-60d", ">60d", "Unknown"]).fillna(0)
-        st.bar_chart(h)
+        C.hbar(list(h.items()), key="risk_rdd")
     else:
         st.caption("No RDD field in this view.")
 
@@ -665,6 +724,9 @@ def data_quality(ctx):
     headers = ctx.get("master_headers") or []
     master = ctx.get("master") or []
     control = ctx.get("control") or {}
+    st.markdown('<div class="page-head"><div><h1>Data Quality</h1>'
+                '<div class="head-sub">Reconciliation, quality KPIs and the '
+                'cleaner&#8217;s exception output.</div></div></div>', unsafe_allow_html=True)
 
     def missing(col):
         if col not in headers:

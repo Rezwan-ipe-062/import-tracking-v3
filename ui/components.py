@@ -1,4 +1,4 @@
-"""Small shared UI helpers for Anchor (brand pills, KPIs, data slicing)."""
+"""Small shared UI helpers for Anchor (brand pills, KPI chips, data slicing)."""
 
 import datetime
 
@@ -7,6 +7,11 @@ import streamlit as st
 
 from pipeline import freshness_state
 from theme import SEVERITY, PRIORITY_ORDER, LOGO_SVG, logo_mark
+
+
+def theme():
+    """The current theme key, resolved from session state (default light)."""
+    return st.session_state.get("anchor_theme", "light")
 
 
 # ------------------------------------------------------------------------ #
@@ -85,27 +90,16 @@ def topbar(meta):
 
 def severity_pill(value):
     v = str(value)
-    style = SEVERITY.get(v, {"fg": "#64748B", "bg": "#F1F5F9", "dot": "#64748B"})
-    return (f'<span class="pill" style="color:{style["fg"]};'
-            f'background:{style["bg"]}"><span class="dot" '
-            f'style="background:{style["dot"]}"></span>{v}</span>')
+    cls = SEVERITY.get(v, ("sev-data", "sev-data", "dot-data"))
+    return (f'<span class="pill {cls[0] if len(cls)==3 else "sev-plain"}">'
+            f'<span class="dot"></span>{v}</span>')
 
 
 def confidence_pill(value):
-    """Small neutral/blue/slate pill for High / Medium / Low data confidence.
-
-    Data-gap labels use the Data Review palette, never red (urgent/critical red is
-    reserved for those severity classes only).
-    """
-    palette = {
-        "High": {"fg": "#0F766E", "bg": "#CCFBF1", "dot": "#0D9488"},
-        "Medium": {"fg": "#B45309", "bg": "#FEF3C7", "dot": "#D97706"},
-        "Low": {"fg": "#475569", "bg": "#E2E8F0", "dot": "#64748B"},
-    }
-    v = str(value or "")
-    p = palette.get(v, palette["Low"])
-    return (f'<span class="pill" style="color:{p["fg"]};background:{p["bg"]}">'
-            f'<span class="dot" style="background:{p["dot"]}"></span>{v}</span>')
+    """High / Medium / Low data-confidence pill (theme-aware)."""
+    key = str(value or "").lower()
+    cls = {"high": "high", "medium": "med", "low": "low"}.get(key, "low")
+    return (f'<span class="pill conf {cls}"><span class="dot"></span>{str(value or "")}</span>')
 
 
 def global_search(headers, rows, key_prefix="gs"):
@@ -188,18 +182,54 @@ def severity_cell_html(value):
 
 
 def kpi_row(kpis):
-    n = len(kpis)
-    cols = st.columns(min(n, 7))
-    for i, (label, value, kind) in enumerate(kpis):
-        cls = "kpi"
-        if kind in ("crit", "urg", "mon", "dr"):
-            cls = f"kpi {kind}"
-        with cols[i % len(cols)]:
+    """Render up to 7 KPI cards. kind: plain | crit | urg | mon | dr."""
+    n = min(len(kpis), 7)
+    cols = st.columns(n)
+    for i, (label, value, kind) in enumerate(kpis[:n]):
+        cls = "kpi" if kind == "plain" else f"kpi {kind}"
+        with cols[i]:
             st.markdown(
-                f'<div class="card {cls}" style="margin:.15rem 0">'
-                f'<div class="kpi-value">{value}</div>'
+                f'<div class="card {cls}"><div class="kpi-value">{value}</div>'
                 f'<div class="kpi-label">{label}</div></div>',
                 unsafe_allow_html=True)
+
+
+def severity_chips(counts, key="sev"):
+    """Clickable severity filter chips (native segmented_control).
+
+    Returns the chosen severity value, or None when 'All' is selected. ``counts``
+    maps a severity label -> int. Order follows PRIORITY_ORDER first, then any
+    extra keys (e.g. 'No BD record') that are present.
+    """
+    if not counts:
+        return None
+    ordered = [v for v in PRIORITY_ORDER + ["No BD record", "No EE evidence"] if v in counts]
+    for k in counts:
+        if k not in ordered:
+            ordered.append(k)
+    options = ["All"] + ordered
+    label_of = {o: (o if o == "All" else f"{o} · {counts[o]}") for o in options}
+    sel = st.segmented_control(
+        "Severity", options=options, format_func=lambda o: label_of[o],
+        selection_mode="single", key=key, default="All",
+        help="Filter the queue to one severity / evidence gap.",
+    )
+    return None if sel in (None, "All", "") else sel
+
+
+def hbar(items, key="hb"):
+    """Render a horizontal bar per (label, value), scaled to the max value."""
+    if not items:
+        return
+    mx = max(v for _, v in items) or 1
+    html = []
+    for lbl, v in items:
+        w = max(4.0, 100 * v / mx)
+        html.append(
+            f'<div class="hbar-row"><div class="hbar-label">{lbl}</div>'
+            f'<div class="hbar-val">{v}</div>'
+            f'<div class="hbar-track-wrap"><div class="hbar-track-fill" style="width:{w:.1f}%"></div></div></div>')
+    st.markdown("".join(html), unsafe_allow_html=True)
 
 
 def priority_sort_key(value):
