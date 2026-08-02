@@ -164,9 +164,9 @@ def logo_mark(width=34):
 # The big injected stylesheet.
 # --------------------------------------------------------------------------- #
 def inject_css(theme="light"):
-    return (css_vars(theme)
-            + FONT_LINKS
+    return (FONT_LINKS
             + f"""<style>
+    {css_vars(theme)}
     /* ---------- base ---------- */
     .anchor-root {{ color-scheme: {theme}; }}
     html, body, .stApp {{
@@ -203,13 +203,19 @@ def inject_css(theme="light"):
     /* sidebar nav radio - custom chips */
     div[data-testid="stSidebarNav"], section[data-testid="stSidebar"] label {{ color: var(--a-sidebar-sub) !important; }}
     section[data-testid="stSidebar"] [role="radiogroup"] {{ gap:.2rem; }}
-    section[data-testid="stSidebar"] [role="radio"] {{
+    section[data-testid="stSidebar"] [role="radiogroup"][aria-label="View"] label[data-baseweb="radio"] {{
       margin:-2px; padding:.55rem .7rem; border-radius:8px; transition: all .15s ease;
+      cursor:pointer; display:flex; align-items:center; gap:.5rem;
     }}
-    section[data-testid="stSidebar"] [role="radio"]:hover {{ background: rgba(255,255,255,.06); }}
-    section[data-testid="stSidebar"] [role="radio"][aria-checked="true"] {{
+    section[data-testid="stSidebar"] [role="radiogroup"][aria-label="View"] label[data-baseweb="radio"]:hover {{
+      background: rgba(255,255,255,.06);
+    }}
+    section[data-testid="stSidebar"] [role="radiogroup"][aria-label="View"] label[data-baseweb="radio"]:has(input:checked) {{
       background: linear-gradient(90deg, rgba(45,212,191,.25), rgba(45,212,191,.06));
       color:#fff; font-weight:600; border-left:2px solid var(--a-primary);
+    }}
+    section[data-testid="stSidebar"] [role="radiogroup"][aria-label="View"] label[data-baseweb="radio"]:has(input:checked) div[data-testid="stMarkdownContainer"] p {{
+      color:#fff; font-weight:600;
     }}
     .sidebar-theme {{ margin-top:.3rem; padding:.3rem 0; }}
     .sidebar-theme label {{ color: var(--a-sidebar-sub); font-size:.78rem; font-weight:600; letter-spacing:.02em; }}
@@ -222,22 +228,27 @@ def inject_css(theme="light"):
       box-shadow: var(--a-shadow);
       backdrop-filter: blur(10px);
     }}
+    .anchor-topbar .brand-name {{ font-size:1.05rem; font-weight:800; letter-spacing:-.02em; color: var(--a-ink); }}
+    .anchor-topbar .brand-sub {{ font-size:.72rem; color: var(--a-ink-faint); margin-top:-2px; }}
     .anchor-topbar .fresh-badge {{
       display:inline-flex; align-items:center; gap:.45rem; font-size:.8rem; font-weight:600;
       color: var(--a-ink-muted); padding:.32rem .7rem; border:1px solid var(--a-border);
       border-radius:999px; background: var(--a-surface-2); white-space:nowrap;
     }}
     .fresh-badge::before {{ content:''; width:8px; height:8px; border-radius:50%; }}
-    .fresh-badge.teal-dot::before {{ background: var(--a-p-primary, var(--a-primary)); box-shadow:0 0 0 3px color-mix(in srgb, var(--a-primary) 25%, transparent); }}
+    .fresh-badge.teal-dot::before {{ background: var(--a-primary); box-shadow:0 0 0 3px color-mix(in srgb, var(--a-primary) 25%, transparent); }}
     .fresh-badge.warn-dot::before {{ background: var(--a-warn-edge); box-shadow:0 0 0 3px color-mix(in srgb, var(--a-warn-edge) 25%, transparent); }}
 
     /* ---------- headings ---------- */
-    .page-head {{ display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin:.2rem 0 1rem; }}
+    .page-head {{ display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin:.2rem 0 1.1rem; }}
     .page-head h1 {{ font-size:1.7rem; font-weight:800; letter-spacing:-.03em; margin:0; color: var(--a-ink); }}
     .page-head .head-sub {{ color: var(--a-ink-muted); font-size:.88rem; margin-top:.1rem; }}
+    .stApp h1, .stApp h2 {{ color: var(--a-ink); letter-spacing:-.02em; }}
+    .stApp h1 {{ font-size:1.6rem; font-weight:800; }}
+    .stApp h2 {{ font-size:1.3rem; font-weight:800; margin:.4rem 0 .9rem; }}
 
     .section-title {{
-      font-size:1.02rem; font-weight:700; color: var(--a-ink); margin:1.4rem 0 .45rem;
+      font-size:1.02rem; font-weight:700; color: var(--a-ink); margin:1.5rem 0 .45rem;
       display:flex; align-items:center; gap:.5rem;
     }}
     .section-title::before {{ content:''; width:4px; height:18px; border-radius:4px;
@@ -251,7 +262,12 @@ def inject_css(theme="light"):
       padding:.95rem 1.05rem; box-shadow: var(--a-shadow);
       transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
     }}
-    .kpi {{ display:flex; flex-direction:column; gap:.15rem; position:relative; overflow:hidden; }}
+    .empty-state {{ text-align:center; padding:2.2rem 1.4rem; }}
+    .empty-state .empty-icon {{
+      font-size:1.6rem; color: var(--a-ink-faint); opacity:.5; margin-bottom:.3rem;
+    }}
+    .kpi {{ display:flex; flex-direction:column; justify-content:center; gap:.2rem;
+      position:relative; overflow:hidden; height:6.6rem; }}
     .kpi::after {{ content:''; position:absolute; inset-inline:0; top:0; height:3px;
       background: linear-gradient(90deg, var(--a-border-soft), var(--a-border)); }}
     .kpi.crit::after {{ background: linear-gradient(90deg, var(--a-crit-dot), transparent); }}
@@ -260,25 +276,49 @@ def inject_css(theme="light"):
     .kpi.dr::after   {{ background: linear-gradient(90deg, var(--a-data-dot), transparent); }}
     .kpi:hover, .card:hover {{ transform: translateY(-2px); box-shadow: var(--a-shadow-lg); border-color: var(--a-border); }}
     .kpi .kpi-value {{ font-size:2rem; font-weight:800; line-height:1; letter-spacing:-.02em;
-      font-family:'JetBrains Mono', monospace; }}
-    .kpi.crit .kpi-value {{ color: var(--a-crit-dot); }}
+      font-family:'JetBrains Mono', monospace; }}    .kpi.crit .kpi-value {{ color: var(--a-crit-dot); }}
     .kpi.urg  .kpi-value {{ color: var(--a-urg-dot); }}
     .kpi.mon  .kpi-value {{ color: var(--a-mon-dot); }}
     .kpi.dr   .kpi-value {{ color: var(--a-data-fg); }}
-    .kpi .kpi-label {{ font-size:.72rem; color: var(--a-ink-muted); font-weight:600; letter-spacing:.01em; }}
+    .kpi .kpi-label {{ font-size:.72rem; color: var(--a-ink-muted); font-weight:600; letter-spacing:.02em; text-transform:uppercase; }}
 
-    /* clickable chip filter */
-    .sevchips {{ display:flex; gap:.4rem; flex-wrap:wrap; margin:.2rem 0 .9rem; }}
-    .sevchip {{
-      display:inline-flex; align-items:center; gap:.45rem; cursor:pointer; user-select:none;
-      font-size:.82rem; font-weight:600; padding:.42rem .8rem; border-radius:999px;
-      border:1px solid var(--a-border); background: var(--a-surface); color: var(--a-ink-muted);
-      transition: all .14s ease; box-shadow: var(--a-shadow);
+    /* severity filter (native segmented control, main area) */
+    section[data-testid="stMain"] div[data-testid="stButtonGroup"] > div[data-baseweb="button-group"] {{
+      display:flex; gap:.35rem; flex-wrap:wrap; padding:.3rem; border-radius:999px;
+      background: var(--a-surface-2); border:1px solid var(--a-border);
+      width:100%; margin:0 auto;
     }}
-    .sevchip:hover {{ transform: translateY(-1px); border-color: var(--a-border-acc, var(--a-primary)); }}
-    .sevchip .n {{ font-family:'JetBrains Mono',monospace; font-weight:700; }}
-    .sevchip[data-on="1"] {{ border-color: var(--chip-edge); background: var(--chip-bg); color: var(--chip-fg); }}
-    .sevchip .dot {{ width:9px; height:9px; border-radius:50%; background: var(--chip-dot); }}
+    section[data-testid="stMain"] div[data-testid="stButtonGroup"] button[data-testid^="stBaseButton-segmented_control"] {{
+      flex:1 1 0; min-width:0; font-size:.82rem; font-weight:600; color: var(--a-ink-muted);
+      border-radius:999px; padding:.4rem .5rem; border:1px solid transparent;
+      transition: all .14s ease; background: transparent;
+    }}
+    section[data-testid="stMain"] div[data-testid="stButtonGroup"] button[data-testid^="stBaseButton-segmented_control"] > div {{
+      justify-content:center; text-align:center;
+    }}
+    section[data-testid="stMain"] div[data-testid="stButtonGroup"] button[data-testid^="stBaseButton-segmented_control"]:hover {{
+      color: var(--a-ink); background: var(--a-surface);
+    }}
+    section[data-testid="stMain"] div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] {{
+      background: var(--a-surface); color: var(--a-ink); box-shadow: var(--a-shadow);
+      border-color: var(--a-border);
+    }}
+    /* theme toggle (sidebar, dark) */
+    section[data-testid="stSidebar"] div[data-testid="stButtonGroup"] {{
+      display:flex; gap:.2rem; padding:.22rem; border-radius:999px;
+      background: rgba(255,255,255,.05); border:1px solid var(--a-border);
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stButtonGroup"] button[data-testid^="stBaseButton-segmented_control"] {{
+      font-size:.78rem; font-weight:600; color: var(--a-sidebar-sub);
+      border-radius:999px; padding:.28rem .7rem; border:1px solid transparent;
+      transition: all .14s ease; background: transparent;
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stButtonGroup"] button[data-testid^="stBaseButton-segmented_control"]:hover {{
+      color:#fff; background: rgba(255,255,255,.08);
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] {{
+      background: rgba(45,212,191,.2); color:#fff; border-color: var(--a-primary);
+    }}
 
     /* ---------- severity / confidence pill ---------- */
     .pill {{ display:inline-flex; align-items:center; gap:.4rem;
@@ -312,6 +352,12 @@ def inject_css(theme="light"):
     /* ---------- widgets: dataframe / tabs / buttons ---------- */
     div[data-testid="stDataFrame"] {{ border:1px solid var(--a-border); border-radius:12px; overflow:hidden; box-shadow: var(--a-shadow); }}
     div[data-testid="stDataFrame"] [data-testid="stCustomComponentV1"] {{ background: var(--a-surface); }}
+    div[data-testid="stDataFrame"] [data-testid="data-grid-canvas"] {{ background: var(--a-surface); }}
+    div[data-testid="stDataFrame"] th[role="columnheader"] {{
+      color: var(--a-ink-muted); font-weight:600; font-size:.8rem; letter-spacing:.01em;
+      background: var(--a-surface-2); border-bottom:1px solid var(--a-border);
+    }}
+    div[data-testid="stDataFrame"] td[role="gridcell"] {{ color: var(--a-ink); }}
     .stTabs [data-baseweb="tab-list"] {{ gap:.3rem; background: var(--a-surface-2); padding:.3rem; border-radius:12px; border:1px solid var(--a-border); }}
     .stTabs [data-baseweb="tab"] {{
       border-radius:8px; padding:.4rem .9rem; color: var(--a-ink-muted); font-weight:600;
@@ -324,6 +370,17 @@ def inject_css(theme="light"):
     .stButton > button[kind="primary"] {{ background: linear-gradient(135deg, var(--a-primary), var(--a-primary-2));
       color: var(--a-on-primary); border:none; box-shadow: 0 6px 18px color-mix(in srgb, var(--a-primary) 35%, transparent); }}
     .stButton > button[kind="primary"]:hover {{ box-shadow: 0 10px 26px color-mix(in srgb, var(--a-primary) 45%, transparent); }}
+
+    /* keyboard focus */
+    a:focus-visible, button:focus-visible, [tabindex]:focus-visible,
+    [role="radio"]:focus-visible, [role="tab"]:focus-visible,
+    [role="button"]:focus-visible, input:focus-visible, textarea:focus-visible,
+    [data-baseweb="select"] div:focus-visible {{
+      outline: 2px solid var(--a-ring); outline-offset: 2px; border-radius: 8px;
+    }}
+    section[data-testid="stSidebar"] [role="radio"]:focus-visible {{
+      outline-color: var(--a-primary-2); outline-offset: 1px;
+    }}
     .stTextInput input, .stSelectbox > div > div, [data-testid="stFileUploaderDropzone"] {{
       border-radius:9px !important; }}
     [data-testid="stFileUploaderDropzone"] {{ border:1px dashed var(--a-border); background: var(--a-surface-2); }}

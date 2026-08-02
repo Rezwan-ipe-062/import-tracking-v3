@@ -108,7 +108,7 @@ def welcome_empty():
         _goto("upload")
     st.markdown('<div class="muted" style="text-align:center">Use Open PO, BD Tracker, '
                 'Eagle Eye and Country Threshold files from the same refresh cycle '
-                'where possible.</div>')
+                'where possible.</div>', unsafe_allow_html=True)
 
 
 # --------------------------------------------------------------------------- #
@@ -578,7 +578,8 @@ def po_journey(ctx):
     if cols_p:
         st.dataframe(sub[cols_p], width="stretch", hide_index=True)
     st.markdown('<div class="muted">Open quantity relates to the PO. Partial-shipment '
-                'rows describe process steps and must not be totalled.</div>')
+                'rows describe process steps and must not be totalled.</div>',
+                unsafe_allow_html=True)
 
     if "Container No." in df.columns and sub["Container No."].isna().all():
         st.markdown('<div class="restore-banner"><div><b>Container evidence not '
@@ -593,7 +594,8 @@ def po_journey(ctx):
     st.markdown(f"- **Suggested follow-up:** {fup}")
     st.markdown(f"- **Suggested owner (suggested):** {owner}")
     st.markdown('<div class="muted">Follow-up and owner are derived from Primary '
-                'Reason and are recommendations, not assignments.</div>')
+                'Reason and are recommendations, not assignments.</div>',
+                unsafe_allow_html=True)
 
     notes = store.load_notes()
     note = notes.get(str(po), "")
@@ -624,7 +626,7 @@ def shipment_visibility(ctx):
                 '<div class="head-sub">One row per container / evidence record.</div>'
                 '</div></div>', unsafe_allow_html=True)
     st.markdown('<div class="muted">Open quantity is never summed this page '
-                '(PO level only).</div>')
+                '(PO level only).</div>', unsafe_allow_html=True)
     keep = [c for c in ["Purchasing Document", "From", "Container No.", "Tracking",
                         "Status", "EE ETD", "EE ETA", "Import Country"] if c in df.columns]
     view = df[keep].drop_duplicates()
@@ -653,7 +655,8 @@ def risk_and_exposure(ctx):
                 '<div class="head-sub">Distinct-PO exposure by country, supplier '
                 'and delivery window.</div></div></div>', unsafe_allow_html=True)
     st.markdown('<div class="muted">Counts are distinct POs, never per-row across '
-                'partial shipments; no KG/L quantity is combined.</div>')
+                'partial shipments; no KG/L quantity is combined.</div>',
+                unsafe_allow_html=True)
     crit = df[df["Urgency"].isin(["Critical", "Urgent"])] \
         if "Urgency" in df.columns else df
 
@@ -684,10 +687,12 @@ def risk_and_exposure(ctx):
 
     section("Product exposure")
     if "Short Text" in df.columns and "Purchasing Document" in df.columns:
+        qty_col = "Still to be Delivered (Qty)"
+        if qty_col in df.columns:
+            df[qty_col] = pd.to_numeric(df[qty_col], errors="coerce")
         grp = df.groupby("Short Text").agg(
             Open_PO=("Purchasing Document", "nunique"),
-            Qty=("Still to be Delivered (Qty)", "sum")
-            if "Still to be Delivered (Qty)" in df.columns else ("Purchasing Document", "count"),
+            Qty=(qty_col, "sum") if qty_col in df.columns else ("Purchasing Document", "count"),
             Crit=("Urgency", lambda s: int(s.eq("Critical").sum())),
             Urg=("Urgency", lambda s: int(s.eq("Urgent").sum())),
             DR=("Urgency", lambda s: int(s.eq("Data Review").sum())),
@@ -747,7 +752,8 @@ def data_quality(ctx):
     section("Reconciliation & quality KPI")
     kpi_row([(label, v, "plain") for label, v in q_rows])
     st.markdown('<div class="legend">Data-review flagged rows use the slate Data '
-                'Review label; a data gap is not treated as Critical.</div>')
+                'Review label; a data gap is not treated as Critical.</div>',
+                unsafe_allow_html=True)
 
     section("Exception queue")
     names = [n for n in ("Exceptions", "Unmatched BD", "Unmatched EE",
@@ -822,7 +828,8 @@ def thresholds_and_refresh(ctx):
 
     _export_panel(ctx)
 
-    st.markdown('<div class="muted">Source files (last run):</div>')
+    st.markdown('<div class="muted">Source files (last run):</div>',
+                unsafe_allow_html=True)
     for s in meta.get("source_files", []):
         st.markdown(f'- **{s.get("filename", "-")}**')
 
@@ -925,7 +932,7 @@ def _clear_dialog():
     st.markdown("**Clear all Anchor data stored on this device?** This removes the "
                 "master, exceptions, filters, notes, source-file metadata and the "
                 "temporary working set. The original Excel files on your device or "
-                "in OneDrive are <b>not</b> deleted.")
+                "in OneDrive are <b>not</b> deleted.", unsafe_allow_html=True)
     if st.session_state.get("confirm_clear_again"):
         c1, c2 = st.columns(2)
         if c2.button("Confirm clear all", type="primary"):

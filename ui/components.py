@@ -67,16 +67,17 @@ def stale(meta) -> bool:
 
 
 def topbar(meta):
-    col_brand, col_status = st.columns([1.4, 2.2], vertical_alignment="center")
-    with col_brand:
-        brand_block()
-    with col_status:
-        state, note = freshness_state(meta)
-        cls = "teal-dot" if state == "current" else "warn-dot"
-        st.markdown(
-            f'<div style="display:flex;flex-wrap:wrap;gap:.5rem;justify-content:flex-end">'
-            f'<span class="fresh-badge {cls}">{note}</span></div>',
-            unsafe_allow_html=True)
+    state, note = freshness_state(meta)
+    cls = "teal-dot" if state == "current" else "warn-dot"
+    st.markdown(
+        f'<div class="anchor-topbar">'
+        f'{logo_mark()}'
+        f'<div style="flex:1;min-width:0">'
+        f'<div class="brand-name">Anchor</div>'
+        f'<div class="brand-sub">Import visibility &amp; action prioritisation</div>'
+        f'</div>'
+        f'<span class="fresh-badge {cls}">{note}</span>'
+        f'</div>', unsafe_allow_html=True)
     if state == "stale":
         st.markdown(
             '<div class="warn-banner"><div><b>Source data may be out of date.</b> '
@@ -244,7 +245,8 @@ def section(title, legend=None):
 
 
 def empty_state(title, body):
-    st.markdown(f'<div class="card" style="text-align:center;padding:2.2rem">'
+    st.markdown(f'<div class="card empty-state">'
+                f'<div class="empty-icon">◌</div>'
                 f'<div style="font-weight:600;font-size:1.05rem">{title}</div>'
                 f'<div class="muted" style="margin-top:.35rem">{body}</div></div>',
                 unsafe_allow_html=True)

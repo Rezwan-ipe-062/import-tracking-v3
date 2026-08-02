@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anchor · Import Visibility</title>
+  <meta name="theme-color" content="#007A3D">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%23007A3D'/%3E%3Cpath d='M20 30v-14' stroke='%23EAF7E8' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M12 12h16M12 12 l8 -6 8 6' fill='none' stroke='%237AC143' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='20' cy='30' r='4.2' fill='none' stroke='%232CB5E8' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ Welcome ============ -->
+<section class="screen" id="screen-welcome" hidden>
+  <div class="center-card">
+    <div class="brand-lockup">
+      <svg viewBox="0 0 40 40" class="brand-logo"><rect width="40" height="40" rx="9" fill="var(--syn-green)"/><path d="M20 30v-14" stroke="var(--green-soft)" stroke-width="3" stroke-linecap="round"/><path d="M12 12h16M12 12 l8 -6 8 6" fill="none" stroke="#7AC143" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="30" r="4.2" fill="none" stroke="#2CB5E8" stroke-width="3"/></svg>
+      <div>
+        <div class="brand-name">Anchor</div>
+        <div class="brand-sub">Import visibility &amp; action prioritisation</div>
+      </div>
+    </div>
+    <h1 class="display-lg">Track your imports.<br>Decide with clarity.</h1>
+    <p class="lede">Upload the latest source files to build a refreshed import action view — Open PO, BD Tracker, Eagle Eye and your country thresholds. Processing runs entirely in your browser; your files never leave this device.</p>
+    <button class="btn btn-primary" onclick="Anchor.go('upload')">Upload latest files</button>
+    <div class="privacy-note"><span class="chip chip-green">100% on-device</span> Cleaning runs with Python-in-browser (Pyodide). Nothing is uploaded to a server.</div>
+  </div>
+</section>
+
+<!-- ============ Restore ============ -->
+<section class="screen" id="screen-restore" hidden>
+  <div class="center-card">
+    <div class="brand-lockup">
+      <svg viewBox="0 0 40 40" class="brand-logo"><rect width="40" height="40" rx="9" fill="var(--syn-green)"/><path d="M20 30v-14" stroke="var(--green-soft)" stroke-width="3" stroke-linecap="round"/><path d="M12 12h16M12 12 l8 -6 8 6" fill="none" stroke="#7AC143" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="30" r="4.2" fill="none" stroke="#2CB5E8" stroke-width="3"/></svg>
+      <div>
+        <div class="brand-name">Anchor</div>
+        <div class="brand-sub">Import visibility &amp; action prioritisation</div>
+      </div>
+    </div>
+    <h2 class="display-md">Restore or refresh</h2>
+    <div class="restore-banner" id="restoreBanner"><div><b>Locally restored view</b> — verify freshness before acting. <span id="restoreNote"></span></div></div>
+    <div class="kpi-grid" id="restoreKpis"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="Anchor.restore()">Restore latest dashboard</button>
+      <button class="btn" onclick="Anchor.go('upload')">Upload new full set</button>
+      <button class="btn btn-danger" onclick="Anchor.confirmClear()">Clear local data</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Upload ============ -->
+<section class="screen" id="screen-upload" hidden>
+  <div class="center-card upload-card">
+    <div class="brand-lockup">
+      <svg viewBox="0 0 40 40" class="brand-logo"><rect width="40" height="40" rx="9" fill="var(--syn-green)"/><path d="M20 30v-14" stroke="var(--green-soft)" stroke-width="3" stroke-linecap="round"/><path d="M12 12h16M12 12 l8 -6 8 6" fill="none" stroke="#7AC143" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="30" r="4.2" fill="none" stroke="#2CB5E8" stroke-width="3"/></svg>
+      <div>
+        <div class="brand-name">Anchor</div>
+        <div class="brand-sub">Import visibility &amp; action prioritisation</div>
+      </div>
+    </div>
+    <h2 class="display-md">Upload the latest source data</h2>
+    <p class="lede">Drop the four source files from the same refresh cycle. Files are read on this device only.</p>
+
+    <div class="dropzones" id="dropzones"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="processBtn" onclick="Anchor.process()" disabled>Build dashboard</button>
+      <button class="btn" onclick="Anchor.go('welcome')">Cancel</button>
+    </div>
+    <div id="uploadProgress" hidden></div>
+  </div>
+</section>
+
+<!-- ============ App shell ============ -->
+<div class="app-shell" id="screen-app" hidden>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-lockup compact">
+        <svg viewBox="0 0 40 40" class="brand-logo"><rect width="40" height="40" rx="9" fill="var(--syn-green)"/><path d="M20 30v-14" stroke="var(--green-soft)" stroke-width="3" stroke-linecap="round"/><path d="M12 12h16M12 12 l8 -6 8 6" fill="none" stroke="#7AC143" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="30" r="4.2" fill="none" stroke="#2CB5E8" stroke-width="3"/></svg>
+        <div>
+          <div class="brand-name">Anchor</div>
+          <div class="brand-sub">Import visibility</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="fresh-badge" id="freshBadge">—</span>
+        <button class="btn-theme" id="themeToggle" title="Toggle dark mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="app-body">
+    <nav class="side-nav" id="sideNav"></nav>
+    <main class="content" id="viewRoot"></main>
+  </div>
+</div>
+
+<!-- ============ Modals & toasts ============ -->
+<div class="modal-overlay" id="clearModal" hidden>
+  <div class="modal-card">
+    <h3>Clear all Anchor data on this device?</h3>
+    <p class="modal-sub">Removes the master view, exceptions, notes and source-file metadata stored in this browser. The original Excel files are <b>not</b> deleted.</p>
+    <div class="btn-row">
+      <button class="btn" onclick="Anchor.cancelClear()">Cancel</button>
+      <button class="btn btn-danger" onclick="Anchor.doClear()">I understand, clear everything</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

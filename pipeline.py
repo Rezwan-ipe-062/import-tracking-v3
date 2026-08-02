@@ -114,7 +114,7 @@ def run(source_paths: dict, threshold_path=None):
         "threshold_filename": thresholds_filename,
         "threshold_version": thresholds_filename or "built-in defaults",
         "open_po_count": summary["po_count"],
-        "source_files": _source_files(source_paths, refresh),
+        "source_files": _source_files(paths, refresh),
         "master_headers": clean_merge.MERGE_COLUMNS,
         "bd_headers": clean_bd_tracker.OUT_COLUMNS,
         "ee_headers": clean_eagle_eye.OUT_COLUMNS,
