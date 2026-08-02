@@ -4,29 +4,56 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Anchor · Import Visibility</title>
-  <meta name="theme-color" content="#007A3D">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%23007A3D'/%3E%3Cpath d='M20 30v-14' stroke='%23EAF7E8' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M12 12h16M12 12 l8 -6 8 6' fill='none' stroke='%237AC143' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='20' cy='30' r='4.2' fill='none' stroke='%232CB5E8' stroke-width='3'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#043927">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 18' shape-rendering='crispEdges'%3E%3Crect width='20' height='18' fill='%23043927'/%3E%3Crect x='8' y='0' width='4' height='1' fill='%23EAF7E8'/%3E%3Crect x='7' y='1' width='6' height='1' fill='%23EAF7E8'/%3E%3Crect x='7' y='2' width='2' height='1' fill='%237AC143'/%3E%3Crect x='11' y='2' width='2' height='1' fill='%237AC143'/%3E%3Crect x='7' y='3' width='2' height='1' fill='%237AC143'/%3E%3Crect x='11' y='3' width='2' height='1' fill='%237AC143'/%3E%3Crect x='7' y='4' width='6' height='1' fill='%237AC143'/%3E%3Crect x='8' y='5' width='2' height='1' fill='%237AC143'/%3E%3Crect x='8' y='6' width='2' height='1' fill='%237AC143'/%3E%3Crect x='5' y='7' width='9' height='1' fill='%237AC143'/%3E%3Crect x='8' y='8' width='2' height='1' fill='%237AC143'/%3E%3Crect x='8' y='9' width='2' height='1' fill='%237AC143'/%3E%3Crect x='8' y='10' width='2' height='1' fill='%237AC143'/%3E%3Crect x='7' y='11' width='4' height='1' fill='%237AC143'/%3E%3Crect x='6' y='12' width='2' height='1' fill='%237AC143'/%3E%3Crect x='10' y='12' width='2' height='1' fill='%237AC143'/%3E%3Crect x='5' y='13' width='2' height='1' fill='%237AC143'/%3E%3Crect x='11' y='13' width='2' height='1' fill='%237AC143'/%3E%3Crect x='4' y='14' width='2' height='1' fill='%237AC143'/%3E%3Crect x='12' y='14' width='2' height='1' fill='%237AC143'/%3E%3Crect x='4' y='15' width='2' height='1' fill='%237AC143'/%3E%3Crect x='12' y='15' width='2' height='1' fill='%237AC143'/%3E%3Crect x='3' y='16' width='2' height='1' fill='%23104A2E'/%3E%3Crect x='13' y='16' width='2' height='1' fill='%23104A2E'/%3E%3Crect x='3' y='17' width='2' height='1' fill='%23104A2E'/%3E%3Crect x='13' y='17' width='2' height='1' fill='%23104A2E'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+<!-- Pixel-art anchor logo, defined once, reused everywhere. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="px-anchor" viewBox="0 0 20 18" shape-rendering="crispEdges">
+    <rect x="0" y="0" width="20" height="18" fill="#043927"/>
+    <rect x="8" y="0" width="4" height="1" fill="#EAF7E8"/>
+    <rect x="7" y="1" width="6" height="1" fill="#EAF7E8"/>
+    <rect x="7" y="2" width="2" height="1" fill="#7AC143"/>
+    <rect x="11" y="2" width="2" height="1" fill="#7AC143"/>
+    <rect x="7" y="3" width="2" height="1" fill="#7AC143"/>
+    <rect x="11" y="3" width="2" height="1" fill="#7AC143"/>
+    <rect x="7" y="4" width="6" height="1" fill="#7AC143"/>
+    <rect x="8" y="5" width="2" height="1" fill="#7AC143"/>
+    <rect x="8" y="6" width="2" height="1" fill="#7AC143"/>
+    <rect x="5" y="7" width="9" height="1" fill="#7AC143"/>
+    <rect x="8" y="8" width="2" height="1" fill="#7AC143"/>
+    <rect x="8" y="9" width="2" height="1" fill="#7AC143"/>
+    <rect x="8" y="10" width="2" height="1" fill="#7AC143"/>
+    <rect x="7" y="11" width="4" height="1" fill="#7AC143"/>
+    <rect x="6" y="12" width="2" height="1" fill="#7AC143"/>
+    <rect x="10" y="12" width="2" height="1" fill="#7AC143"/>
+    <rect x="5" y="13" width="2" height="1" fill="#7AC143"/>
+    <rect x="11" y="13" width="2" height="1" fill="#7AC143"/>
+    <rect x="4" y="14" width="2" height="1" fill="#7AC143"/>
+    <rect x="12" y="14" width="2" height="1" fill="#7AC143"/>
+    <rect x="4" y="15" width="2" height="1" fill="#7AC143"/>
+    <rect x="12" y="15" width="2" height="1" fill="#7AC143"/>
+    <rect x="3" y="16" width="2" height="1" fill="#104A2E"/>
+    <rect x="13" y="16" width="2" height="1" fill="#104A2E"/>
+    <rect x="3" y="17" width="2" height="1" fill="#104A2E"/>
+    <rect x="13" y="17" width="2" height="1" fill="#104A2E"/>
+  </symbol>
+</svg>
+
 <!-- ============ Welcome ============ -->
 <section class="screen" id="screen-welcome" hidden>
-  <div class="center-card">
-    <div class="brand-lockup">
-      <svg viewBox="0 0 40 40" class="brand-logo"><rect width="40" height="40" rx="9" fill="var(--syn-green)"/><path d="M20 30v-14" stroke="var(--green-soft)" stroke-width="3" stroke-linecap="round"/><path d="M12 12h16M12 12 l8 -6 8 6" fill="none" stroke="#7AC143" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="30" r="4.2" fill="none" stroke="#2CB5E8" stroke-width="3"/></svg>
-      <div>
-        <div class="brand-name">Anchor</div>
-        <div class="brand-sub">Import visibility &amp; action prioritisation</div>
-      </div>
-    </div>
-    <h1 class="display-lg">Track your imports.<br>Decide with clarity.</h1>
-    <p class="lede">Upload the latest source files to build a refreshed import action view — Open PO, BD Tracker, Eagle Eye and your country thresholds. Processing runs entirely in your browser; your files never leave this device.</p>
-    <button class="btn btn-primary" onclick="Anchor.go('upload')">Upload latest files</button>
-    <div class="privacy-note"><span class="chip chip-green">100% on-device</span> Cleaning runs with Python-in-browser (Pyodide). Nothing is uploaded to a server.</div>
+  <div class="center-card welcome-card">
+    <svg class="brand-logo big"><use href="#px-anchor"/></svg>
+    <div class="brand-name display">ANCHOR</div>
+    <div class="brand-sub">Import visibility &amp; action prioritisation</div>
+    <button class="btn btn-primary btn-lg" onclick="Anchor.go('upload')">Upload source files</button>
+    <div class="privacy-note">&#9679; 100% on-device · files never leave this browser</div>
   </div>
 </section>
 
@@ -34,18 +61,18 @@
 <section class="screen" id="screen-restore" hidden>
   <div class="center-card">
     <div class="brand-lockup">
-      <svg viewBox="0 0 40 40" class="brand-logo"><rect width="40" height="40" rx="9" fill="var(--syn-green)"/><path d="M20 30v-14" stroke="var(--green-soft)" stroke-width="3" stroke-linecap="round"/><path d="M12 12h16M12 12 l8 -6 8 6" fill="none" stroke="#7AC143" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="30" r="4.2" fill="none" stroke="#2CB5E8" stroke-width="3"/></svg>
+      <svg class="brand-logo"><use href="#px-anchor"/></svg>
       <div>
-        <div class="brand-name">Anchor</div>
-        <div class="brand-sub">Import visibility &amp; action prioritisation</div>
+        <div class="brand-name">ANCHOR</div>
+        <div class="brand-sub">Import visibility</div>
       </div>
     </div>
     <h2 class="display-md">Restore or refresh</h2>
-    <div class="restore-banner" id="restoreBanner"><div><b>Locally restored view</b> — verify freshness before acting. <span id="restoreNote"></span></div></div>
+    <div class="restore-banner" id="restoreBanner"><div><b>Locally restored view</b> · <span id="restoreNote"></span></div></div>
     <div class="kpi-grid" id="restoreKpis"></div>
     <div class="btn-row">
-      <button class="btn btn-primary" onclick="Anchor.restore()">Restore latest dashboard</button>
-      <button class="btn" onclick="Anchor.go('upload')">Upload new full set</button>
+      <button class="btn btn-primary" onclick="Anchor.restore()">Restore</button>
+      <button class="btn" onclick="Anchor.go('upload')">Upload new set</button>
       <button class="btn btn-danger" onclick="Anchor.confirmClear()">Clear local data</button>
     </div>
   </div>
@@ -55,14 +82,13 @@
 <section class="screen" id="screen-upload" hidden>
   <div class="center-card upload-card">
     <div class="brand-lockup">
-      <svg viewBox="0 0 40 40" class="brand-logo"><rect width="40" height="40" rx="9" fill="var(--syn-green)"/><path d="M20 30v-14" stroke="var(--green-soft)" stroke-width="3" stroke-linecap="round"/><path d="M12 12h16M12 12 l8 -6 8 6" fill="none" stroke="#7AC143" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="30" r="4.2" fill="none" stroke="#2CB5E8" stroke-width="3"/></svg>
+      <svg class="brand-logo"><use href="#px-anchor"/></svg>
       <div>
-        <div class="brand-name">Anchor</div>
-        <div class="brand-sub">Import visibility &amp; action prioritisation</div>
+        <div class="brand-name">ANCHOR</div>
+        <div class="brand-sub">Upload source data</div>
       </div>
     </div>
-    <h2 class="display-md">Upload the latest source data</h2>
-    <p class="lede">Drop the four source files from the same refresh cycle. Files are read on this device only.</p>
+    <p class="lede">Drop the four source files from the same refresh cycle. Read on-device only.</p>
 
     <div class="dropzones" id="dropzones"></div>
 
@@ -79,9 +105,9 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand-lockup compact">
-        <svg viewBox="0 0 40 40" class="brand-logo"><rect width="40" height="40" rx="9" fill="var(--syn-green)"/><path d="M20 30v-14" stroke="var(--green-soft)" stroke-width="3" stroke-linecap="round"/><path d="M12 12h16M12 12 l8 -6 8 6" fill="none" stroke="#7AC143" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="30" r="4.2" fill="none" stroke="#2CB5E8" stroke-width="3"/></svg>
+        <svg class="brand-logo"><use href="#px-anchor"/></svg>
         <div>
-          <div class="brand-name">Anchor</div>
+          <div class="brand-name">ANCHOR</div>
           <div class="brand-sub">Import visibility</div>
         </div>
       </div>
