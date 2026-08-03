@@ -1136,6 +1136,12 @@ const Anchor = (() => {
 
   document.addEventListener('DOMContentLoaded', init);
 
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+
   return {
     go, restore, process, renderDropzones, confirmClear, cancelClear, doClear,
   };
