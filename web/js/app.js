@@ -698,9 +698,10 @@ const Anchor = (() => {
     </div>`;
 
     const polist = [...new Set(rows.map(r => String(r[poIdx])).filter(Boolean))].sort();
-    const cands = globalSearch('pj');
-    const chosen = state.po && polist.includes(String(state.po)) ? String(state.po)
-      : (cands && cands[0]) || polist[0];
+    const cands = (globalSearch('pj') || []).filter(c => polist.includes(String(c)));
+    const q = (state.searchQ || '').trim();
+    const chosen = q && cands.length ? cands[0]
+      : (state.po && polist.includes(String(state.po)) ? String(state.po) : polist[0]);
     state.po = chosen;
 
     const sub = rows.filter(r => String(r[poIdx]) === String(chosen));
@@ -719,6 +720,10 @@ const Anchor = (() => {
       ['Import Country', String(oneObj['Import Country'] || '-'), 'plain'],
       ['Confidence', dataConfidence(one, true, false), 'plain'],
     ]);
+
+    if (q && !cands.length) {
+      html += `<div class="note mut" style="margin-top:12px"><div>No active PO matches &ldquo;${esc(q)}&rdquo;. Showing the first PO in the list.</div></div>`;
+    }
 
     // Milestone journey
     html += section('Milestone journey');

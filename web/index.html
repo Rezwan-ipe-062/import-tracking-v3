@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Anchor · Import Visibility</title>
   <meta name="theme-color" content="#043927">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 18' shape-rendering='crispEdges'%3E%3Crect width='20' height='18' fill='%23043927'/%3E%3Crect x='8' y='0' width='4' height='1' fill='%23EAF7E8'/%3E%3Crect x='7' y='1' width='6' height='1' fill='%23EAF7E8'/%3E%3Crect x='7' y='2' width='2' height='1' fill='%237AC143'/%3E%3Crect x='11' y='2' width='2' height='1' fill='%237AC143'/%3E%3Crect x='7' y='3' width='2' height='1' fill='%237AC143'/%3E%3Crect x='11' y='3' width='2' height='1' fill='%237AC143'/%3E%3Crect x='7' y='4' width='6' height='1' fill='%237AC143'/%3E%3Crect x='8' y='5' width='2' height='1' fill='%237AC143'/%3E%3Crect x='8' y='6' width='2' height='1' fill='%237AC143'/%3E%3Crect x='5' y='7' width='9' height='1' fill='%237AC143'/%3E%3Crect x='8' y='8' width='2' height='1' fill='%237AC143'/%3E%3Crect x='8' y='9' width='2' height='1' fill='%237AC143'/%3E%3Crect x='8' y='10' width='2' height='1' fill='%237AC143'/%3E%3Crect x='7' y='11' width='4' height='1' fill='%237AC143'/%3E%3Crect x='6' y='12' width='2' height='1' fill='%237AC143'/%3E%3Crect x='10' y='12' width='2' height='1' fill='%237AC143'/%3E%3Crect x='5' y='13' width='2' height='1' fill='%237AC143'/%3E%3Crect x='11' y='13' width='2' height='1' fill='%237AC143'/%3E%3Crect x='4' y='14' width='2' height='1' fill='%237AC143'/%3E%3Crect x='12' y='14' width='2' height='1' fill='%237AC143'/%3E%3Crect x='4' y='15' width='2' height='1' fill='%237AC143'/%3E%3Crect x='12' y='15' width='2' height='1' fill='%237AC143'/%3E%3Crect x='3' y='16' width='2' height='1' fill='%23104A2E'/%3E%3Crect x='13' y='16' width='2' height='1' fill='%23104A2E'/%3E%3Crect x='3' y='17' width='2' height='1' fill='%23104A2E'/%3E%3Crect x='13' y='17' width='2' height='1' fill='%23104A2E'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" href="img/anchor-logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -13,43 +13,10 @@
 </head>
 <body>
 
-<!-- Pixel-art anchor logo, defined once, reused everywhere. -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="px-anchor" viewBox="0 0 20 18" shape-rendering="crispEdges">
-    <rect x="0" y="0" width="20" height="18" fill="#043927"/>
-    <rect x="8" y="0" width="4" height="1" fill="#EAF7E8"/>
-    <rect x="7" y="1" width="6" height="1" fill="#EAF7E8"/>
-    <rect x="7" y="2" width="2" height="1" fill="#7AC143"/>
-    <rect x="11" y="2" width="2" height="1" fill="#7AC143"/>
-    <rect x="7" y="3" width="2" height="1" fill="#7AC143"/>
-    <rect x="11" y="3" width="2" height="1" fill="#7AC143"/>
-    <rect x="7" y="4" width="6" height="1" fill="#7AC143"/>
-    <rect x="8" y="5" width="2" height="1" fill="#7AC143"/>
-    <rect x="8" y="6" width="2" height="1" fill="#7AC143"/>
-    <rect x="5" y="7" width="9" height="1" fill="#7AC143"/>
-    <rect x="8" y="8" width="2" height="1" fill="#7AC143"/>
-    <rect x="8" y="9" width="2" height="1" fill="#7AC143"/>
-    <rect x="8" y="10" width="2" height="1" fill="#7AC143"/>
-    <rect x="7" y="11" width="4" height="1" fill="#7AC143"/>
-    <rect x="6" y="12" width="2" height="1" fill="#7AC143"/>
-    <rect x="10" y="12" width="2" height="1" fill="#7AC143"/>
-    <rect x="5" y="13" width="2" height="1" fill="#7AC143"/>
-    <rect x="11" y="13" width="2" height="1" fill="#7AC143"/>
-    <rect x="4" y="14" width="2" height="1" fill="#7AC143"/>
-    <rect x="12" y="14" width="2" height="1" fill="#7AC143"/>
-    <rect x="4" y="15" width="2" height="1" fill="#7AC143"/>
-    <rect x="12" y="15" width="2" height="1" fill="#7AC143"/>
-    <rect x="3" y="16" width="2" height="1" fill="#104A2E"/>
-    <rect x="13" y="16" width="2" height="1" fill="#104A2E"/>
-    <rect x="3" y="17" width="2" height="1" fill="#104A2E"/>
-    <rect x="13" y="17" width="2" height="1" fill="#104A2E"/>
-  </symbol>
-</svg>
-
 <!-- ============ Welcome ============ -->
 <section class="screen" id="screen-welcome" hidden>
   <div class="center-card welcome-card">
-    <svg class="brand-logo big"><use href="#px-anchor"/></svg>
+    <img class="brand-logo big" src="img/anchor-logo.png" alt="Anchor logo">
     <div class="brand-name display">ANCHOR</div>
     <div class="brand-sub">Import visibility &amp; action prioritisation</div>
     <button class="btn btn-primary btn-lg" onclick="Anchor.go('upload')">Upload source files</button>
@@ -61,7 +28,7 @@
 <section class="screen" id="screen-restore" hidden>
   <div class="center-card">
     <div class="brand-lockup">
-      <svg class="brand-logo"><use href="#px-anchor"/></svg>
+      <img class="brand-logo" src="img/anchor-logo.png" alt="Anchor logo">
       <div>
         <div class="brand-name">ANCHOR</div>
         <div class="brand-sub">Import visibility</div>
@@ -82,7 +49,7 @@
 <section class="screen" id="screen-upload" hidden>
   <div class="center-card upload-card">
     <div class="brand-lockup">
-      <svg class="brand-logo"><use href="#px-anchor"/></svg>
+      <img class="brand-logo" src="img/anchor-logo.png" alt="Anchor logo">
       <div>
         <div class="brand-name">ANCHOR</div>
         <div class="brand-sub">Upload source data</div>
@@ -105,7 +72,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand-lockup compact">
-        <svg class="brand-logo"><use href="#px-anchor"/></svg>
+        <img class="brand-logo" src="img/anchor-logo.png" alt="Anchor logo">
         <div>
           <div class="brand-name">ANCHOR</div>
           <div class="brand-sub">Import visibility</div>

@@ -125,8 +125,8 @@ a { color: inherit; }
 /* pixel brand */
 .brand-lockup { display: inline-flex; align-items: center; gap: 13px; text-align: left; margin-bottom: 26px; }
 .brand-lockup.compact { margin-bottom: 0; }
-.brand-logo { width: 40px; height: 36px; flex: none; image-rendering: pixelated; }
-.brand-logo.big { width: 84px; height: 76px; margin-bottom: 8px; }
+.brand-logo { width: 40px; height: 40px; flex: none; object-fit: contain; }
+.brand-logo.big { width: 96px; height: 96px; margin-bottom: 8px; }
 .brand-name { font-family: 'Press Start 2P', monospace; font-size: 15px; letter-spacing: .04em; line-height: 1.35; color: var(--ink); }
 .brand-name.display { font-size: 26px; margin-bottom: 6px; }
 .brand-sub { font-size: 12px; font-weight: 700; color: var(--ink-muted); letter-spacing: .04em; }
