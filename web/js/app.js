@@ -700,7 +700,8 @@ const Anchor = (() => {
     const polist = [...new Set(rows.map(r => String(r[poIdx])).filter(Boolean))].sort();
     const cands = (globalSearch('pj') || []).filter(c => polist.includes(String(c)));
     const q = (state.searchQ || '').trim();
-    const chosen = q && cands.length ? cands[0]
+    const chosen = q && cands.length
+      ? (state.po && cands.includes(String(state.po)) ? String(state.po) : cands[0])
       : (state.po && polist.includes(String(state.po)) ? String(state.po) : polist[0]);
     state.po = chosen;
 
@@ -723,6 +724,13 @@ const Anchor = (() => {
 
     if (q && !cands.length) {
       html += `<div class="note mut" style="margin-top:12px"><div>No active PO matches &ldquo;${esc(q)}&rdquo;. Showing the first PO in the list.</div></div>`;
+    }
+
+    if (q && cands.length > 1) {
+      html += `<div class="match-note note mut" style="margin-top:12px">
+        <div style="margin-bottom:8px"><b>${cands.length} active POs match &ldquo;${esc(q)}&rdquo;</b> — choose one:</div>
+        <div class="match-chips">${cands.map(c => `<button type="button" class="match-chip${String(c) === String(chosen) ? ' on' : ''}" data-po="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+      </div>`;
     }
 
     // Milestone journey
@@ -783,13 +791,18 @@ const Anchor = (() => {
     $('#viewRoot').innerHTML = html;
 
     const sel = $('#pj-po');
-    polist.forEach(p => {
+    const selList = q && cands.length ? cands : polist;
+    selList.forEach(p => {
       const o = document.createElement('option');
       o.value = p; o.textContent = p;
       sel.appendChild(o);
     });
     sel.value = chosen;
     sel.addEventListener('change', () => { state.po = sel.value; poJourney(); });
+
+    $('#viewRoot').querySelectorAll('.match-chip').forEach(b => {
+      b.addEventListener('click', () => { state.po = b.getAttribute('data-po'); poJourney(); });
+    });
 
     $('#pj-search').addEventListener('input', () => { state.searchQ = $('#pj-search').value; });
     $('#pj-search').addEventListener('keydown', e => {

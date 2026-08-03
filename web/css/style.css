@@ -254,7 +254,8 @@ html[data-theme="dark"] .btn-theme { background: rgba(255,255,255,.08); border-c
 .card-pad { padding: 18px 20px; }
 
 /* KPI */
-.kpi-grid.app { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+.kpi-grid.app { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.kpi-grid.app .kpi { flex: 1 1 150px; min-width: 150px; max-width: 230px; }
 .kpi {
   background: var(--surface); border: 3px solid var(--border); 
   padding: 14px 16px 12px; box-shadow: var(--shadow); position: relative;
@@ -347,6 +348,16 @@ table.data tr.row-data { background: color-mix(in srgb, var(--data-bg) 28%, tran
 .note.neg  { background: var(--neg-soft); border-color: var(--crit-dot); color: var(--crit-fg); box-shadow: 3px 3px 0 var(--crit-dot); }
 .note.pos  { background: var(--pos-soft); border-color: var(--mon-dot); color: var(--mon-fg); box-shadow: 3px 3px 0 var(--mon-dot); }
 .note.mut  { background: var(--data-bg); border-color: var(--border); color: var(--data-fg); box-shadow: 3px 3px 0 var(--border); }
+
+/* PO search multi-match picker */
+.match-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.match-chip {
+  padding: 6px 12px; font-size: 12.6px; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+  background: var(--surface); color: var(--ink); border: 3px solid var(--border);
+  box-shadow: 3px 3px 0 var(--border); cursor: pointer; border-radius: 0;
+}
+.match-chip:hover { border-color: var(--primary); color: var(--primary); }
+.match-chip.on { background: var(--primary); border-color: var(--ink); color: var(--on-primary); box-shadow: 3px 3px 0 var(--ink); }
 .note b { display: block; margin-bottom: 1px; }
 
 .empty {
